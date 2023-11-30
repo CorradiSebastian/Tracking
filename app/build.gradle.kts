@@ -70,6 +70,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    //navigation
+    val navVersion = "2.7.5"
+    implementation("androidx.navigation:navigation-compose:$navVersion")
+
     //Hilt
     implementation("com.google.dagger:hilt-android:2.47")
     kapt("com.google.dagger:hilt-android-compiler:2.47")
