@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -77,4 +78,23 @@ dependencies {
     //Hilt
     implementation("com.google.dagger:hilt-android:2.47")
     kapt("com.google.dagger:hilt-android-compiler:2.47")
+
+    //ViewModels
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    //TODO probably I will not need this
+    // Google Sign In SDK
+    implementation("com.google.android.gms:play-services-auth:20.5.0")
+
+    // Firebase SDK
+    implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Firebase UI Library
+    //TODO probably I will not need this
+    implementation("com.firebaseui:firebase-ui-auth:8.0.2")
+
+    implementation("com.firebaseui:firebase-ui-database:8.0.2")
 }
