@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    //id ("kotlin-android-extensions")
 }
 
 android {
@@ -63,6 +64,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -82,9 +84,15 @@ dependencies {
     //ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+
     //TODO probably I will not need this
     // Google Sign In SDK
-    implementation("com.google.android.gms:play-services-auth:20.5.0")
+   // implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-auth")
+    implementation("com.google.firebase:firebase-analytics")
 
     // Firebase SDK
     implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
@@ -97,4 +105,7 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
 
     implementation("com.firebaseui:firebase-ui-database:8.0.2")
+
+    //Location Permissions
+    implementation ("com.google.accompanist:accompanist-permissions:0.25.0")
 }

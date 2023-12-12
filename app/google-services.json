@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "584116774311",
+    "project_id": "track-f3d72",
+    "storage_bucket": "track-f3d72.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584116774311:android:41a70f96b7137271aec282",
+        "android_client_info": {
+          "package_name": "com.sebastiancorradi.track"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtfGato5zyByIi7xvhn27ur59BAXSuFHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

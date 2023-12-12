@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.sebastiancorradi.track.ui.location.LocationScreen
 import com.sebastiancorradi.track.ui.main.MainScreen
 import com.sebastiancorradi.track.ui.splash.SplashScreen
 
@@ -18,7 +19,10 @@ fun AppNavigation(){
             SplashScreen(navController)
         }
         composable(AppScreens.MainScreen.route){
-            MainScreen()
+            MainScreen(navController)
+        }
+        composable(AppScreens.LocationScreen.route){
+            LocationScreen()
         }
     }
 }

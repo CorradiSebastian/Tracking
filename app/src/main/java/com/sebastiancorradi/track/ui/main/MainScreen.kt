@@ -12,7 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,13 +26,16 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.sebastiancorradi.track.R
+import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.ui.components.LoadingButton
 import com.sebastiancorradi.track.ui.theme.TrackTheme
 
-
+ var _navController: NavController? = null
 @Composable
-fun MainScreen( mainViewModel: MainViewModel = viewModel()){
+fun MainScreen(navController: NavController?, mainViewModel: MainViewModel = viewModel()){
+    _navController = navController
     val mainScreenUIState by mainViewModel.mainScreenUIState.collectAsState()
     //mainViewModel = _mainViewModel
     TrackTheme {
@@ -43,11 +48,16 @@ fun MainScreen( mainViewModel: MainViewModel = viewModel()){
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
+        Row(modifier = Modifier.padding(24.dp),
+            ) {
+            OutlinedTextField(value = "Not Tracking", onValueChange = {} )
+        }
         Row(modifier = Modifier.padding(24.dp)) {
             Column(modifier = Modifier
                 .weight(1f)
@@ -60,7 +70,8 @@ fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewMod
                 }*/
                 ElevatedButton(
                     modifier = Modifier.background(colorResource(R.color.buttonEnabled)),
-                    onClick = { mainViewModel.startTrackingClicked() },
+                    //onClick = { mainViewModel.startTrackingClicked() },
+                    onClick = { _navController!!.navigate(AppScreens.LocationScreen.route) },
                     //colors = ButtonColors(containerColor = colorResource(R.color.buttonEnabled)),
                 ) {
                     if (mainScreenUIState.tracking)
@@ -78,7 +89,7 @@ fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewMod
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+    MainScreen(null)
     /*TrackTheme {
         MainContent(MainScreenUIState())
     }*/
