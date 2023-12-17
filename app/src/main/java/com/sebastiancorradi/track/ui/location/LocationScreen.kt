@@ -2,8 +2,10 @@ package com.sebastiancorradi.track.ui.location
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +32,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.LocationServices
+import com.sebastiancorradi.track.services.LocationService
 import com.sebastiancorradi.track.ui.components.checkLocationGranted
 import com.sebastiancorradi.track.ui.components.hasLocationPermission
 import com.sebastiancorradi.track.ui.components.subscribeToLocationUpdates
@@ -65,11 +68,6 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
         Button(
             onClick = {
                 if (hasLocationPermission(context)) {
-                    // Permission already granted, update the location
-                    /*getCurrentLocation(context) { lat, long ->
-                        location = "Latitude: $lat, Longitude: $long"
-                    }*/
-                    Log.e("sebastrack", "about to subscribe, from button")
                     subscribeToLocationUpdates(context, ::locationUpdate)
                 } else {
                     // Request location permission
@@ -77,15 +75,51 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
                 }
             }
         ) {
-            Text(text = "Allow")
+            Text(text = "Allow Standard")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        //Text(text = "Allow")
+        Button(
+            onClick = {
+                if (hasLocationPermission(context)) {
+                    startForegroundLocationService(context)
+                } else {
+                    // Request location permission
+                    requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            }
+        ) {
+            Text(text = "Allow Foreground")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                if (hasLocationPermission(context)) {
+                    Log.e("Sebastito", "click, luego tenia permisos")
+                    viewModel.startLocationUpdates()
+                } else {
+                    // Request location permission
+                    Log.e("Sebastito", "click, luego launchPermissionsLauncher")
+                    requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            }
+        ) {
+            Text(text = "nuevo Foreground")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         //TODO check if this is ok
         Text(text = location.toString())
     }
 }
 
+private fun startForegroundLocationService(context: Context){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val intent = Intent(context, LocationService::class.java)
+        Log.e("Sebastito", "about to call StartForegroundService")// Build the intent for the service
+        //context.startForegroundService(intent)
+        context.startService(intent)
+    }
+
+}
 @Composable
 fun setLifeCycleObserver() {
     val TAG = "sebastrack"
