@@ -3,6 +3,7 @@ package com.sebastiancorradi.track.repository
 import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Looper
+import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -19,6 +20,7 @@ class LocationRepository @Inject constructor(
 ) {
     private val callback = Callback()
 
+    //TODO check is  is ok to have a Flow in the repository
     private val _isReceivingUpdates = MutableStateFlow(false)
     val isReceivingLocationUpdates = _isReceivingUpdates.asStateFlow()
 
@@ -29,7 +31,7 @@ class LocationRepository @Inject constructor(
     fun startLocationUpdates() {
         val request  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
             .setMinUpdateIntervalMillis(5000)
-            .setMaxUpdateDelayMillis(30000)
+            .setMaxUpdateDelayMillis(15000)
             .build();
         // Note: For this sample it's fine to use the main looper, so our callback will run on the
         // main thread. If your callback will perform any intensive operations (writing to disk,

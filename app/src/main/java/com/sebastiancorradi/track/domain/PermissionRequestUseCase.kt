@@ -1,17 +1,17 @@
 package com.sebastiancorradi.track.domain
 
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest.permission.POST_NOTIFICATIONS
+import com.sebastiancorradi.track.ui.main.MainScreenUIState
+
 class PermissionRequestUseCase {
 
-    operator fun invoke() {
-        //suspend operator fun invoke(): StartResult {
-        /*val result = webService.login(username, password)
-
-        return if (result.isSuccessful) {
-            val user = result.body()
-
-            LoginResult.Success(user)
-        } else {
-            LoginResult.Failure
-        }*/
+    operator fun invoke(state: MainScreenUIState, permissions: Map<String, Boolean,>):MainScreenUIState {
+        if (permissions.getValue(ACCESS_FINE_LOCATION) &&
+            permissions.getValue(POST_NOTIFICATIONS)
+            ){
+            return state.copy(startForeground = true)
+        }
+        return state
     }
 }

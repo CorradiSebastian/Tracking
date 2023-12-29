@@ -2,31 +2,32 @@ package com.sebastiancorradi.track.services
 
 
 
-import android.Manifest.permission
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.Binder
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.repository.LocationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Singleton
+
 
 /**
  * Service which manages turning location updates on and off. UI clients should bind to this service
@@ -42,6 +43,7 @@ import javax.inject.Singleton
  */
 @AndroidEntryPoint
 class ForegroundLocationService : LifecycleService() {
+//class ForegroundLocationService() : Service(), LifecycleOwner {
 
     @Inject
     lateinit var locationRepository: LocationRepository
@@ -57,9 +59,34 @@ class ForegroundLocationService : LifecycleService() {
 
     private fun isBound() = bindCount > 0
 
+    override fun onCreate() {
+        super.onCreate()
+
+        createNotificationChannel()
+        //TODO ver que pasa si llamo a startForeground una vez que ya tengo el location
+        startForeground(NOTIFICATION_ID, buildNotification(null))
+
+    }
+
+    override fun stopService(name: Intent?): Boolean {
+        return super.stopService(name)
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
+        if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
+            stopSelf();
+            locationRepository.stopLocationUpdates()
+            return START_NOT_STICKY
+        }
+        val notification = buildNotification(null)
+        ServiceCompat.startForeground(
+            /* service = */ this,
+            /* id = */ 100, // Cannot be 0
+            /* notification = */ notification,
+            /* foregroundServiceType = */
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
+        )
         // This action comes from our ongoing notification. The user requested to stop updates.
         /*if (intent?.action == ACTION_STOP_UPDATES) {
             stopLocationUpdates()
@@ -84,6 +111,7 @@ class ForegroundLocationService : LifecycleService() {
                         locationRepository.startLocationUpdates()
                     }
                 }*/
+                Log.e("Sebastrack", "about to startLocationUpdates")
                 locationRepository.startLocationUpdates()
             }
             // Update any foreground notification when we receive location updates.
@@ -149,7 +177,7 @@ class ForegroundLocationService : LifecycleService() {
         }
     }
 
-    private fun enterForeground() {
+   /* private fun enterForeground() {
         if (!isForeground) {
             isForeground = true
 
@@ -157,7 +185,7 @@ class ForegroundLocationService : LifecycleService() {
             //showNotification(locationRepository.lastLocation.value)
             showNotification(Location("pro vi der"))
         }
-    }
+    }*/
 
     private fun showNotification(location: Location?) {
         if (!isForeground) {
@@ -193,20 +221,30 @@ class ForegroundLocationService : LifecycleService() {
             this,
             0,
             Intent(this, this::class.java).setAction(ACTION_STOP_UPDATES),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        /*val contentText = if (location != null) {
-            getString(R.string.location_lat_lng, location.latitude, location.longitude)
+//////////////////////////////////
+/*        val stopSelf = Intent(this, SameService::class.java)
+        stopSelf.action = this.ACTION_STOP_SERVICE
+        val pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT)
+        builder.addAction(R.drawable.ic_launcher, "Stop", pStopSelf)*/
+        ////////////////////////////////////////////////////////////////////////
+        val contentText = if (location != null) {
+            //getString(R.string.location_lat_lng, location.latitude, location.longitude)
+            "valor"
         } else {
-            getString(R.string.waiting_for_location)
-        }*/
+            //getString(R.string.waiting_for_location)
+            "Esperando"
+        }
 
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("contentText")
+            .setContentText(contentText)
             .setContentIntent(pendingIntent)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
+            //TODO create icons
             //.addAction(R.drawable.ic_stop, getString(R.string.stop), stopIntent)
+            .addAction(R.drawable.ic_launcher_foreground, "stop", stopIntent)
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -235,6 +273,7 @@ class ForegroundLocationService : LifecycleService() {
         const val NOTIFICATION_CHANNEL_ID = "LocationUpdates"
         const val ACTION_STOP_UPDATES = ".ACTION_STOP_UPDATES"
     }
+
 }
 
 /**

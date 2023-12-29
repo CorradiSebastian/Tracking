@@ -1,11 +1,10 @@
 package com.sebastiancorradi.track.ui.components
 
 import android.Manifest
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
@@ -14,26 +13,83 @@ import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.firebase.ui.auth.AuthUI.getApplicationContext
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.sebastiancorradi.track.services.LocationService
 
 
-fun hasLocationPermission(context: Context): Boolean {
+fun hasLocationAndPostPermissions(context: Context): Boolean {
+    return hasPermission(context, ACCESS_FINE_LOCATION) &&
+            hasPermission(context, POST_NOTIFICATIONS)
+}
+
+fun hasPermission(context: Context, permission:String): Boolean {
     return ContextCompat.checkSelfPermission(
         context,
-        android.Manifest.permission.ACCESS_FINE_LOCATION
+        permission
     ) == PackageManager.PERMISSION_GRANTED
 }
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun RequestPermissions2(requestLocation: Boolean = false, requestNotification: Boolean = false) {
+    val permissions = mutableListOf<String>()
+    if (requestLocation){
+        permissions.add(ACCESS_FINE_LOCATION)
+        permissions.add(ACCESS_COARSE_LOCATION)
+    }
+    if (requestNotification){
+        permissions.add(POST_NOTIFICATIONS)
+    }
+    if (permissions.size == 0)
+        return
+
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    val permissionState = rememberMultiplePermissionsState(permissions = permissions){
+       // tiene un mapa <String, boolean
+
+    }
+
+    DisposableEffect(key1= lifeCycleOwner) {
+        val observer = LifecycleEventObserver{ source, event ->
+            when (event){
+                Lifecycle.Event.ON_START -> {
+                    permissionState.launchMultiplePermissionRequest()
+                }
+
+                else -> {
+
+                }
+            }
+        }
+        lifeCycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifeCycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+}
+
+fun requestPermissions(context: Context, requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+}
+
 
 @Composable
  fun checkLocationGranted(
@@ -44,18 +100,14 @@ fun hasLocationPermission(context: Context): Boolean {
          contract = ActivityResultContracts.RequestPermission(),
          onResult = { isGranted: Boolean ->
              if (isGranted) {
-                 // Permission granted, update the location
                  callbackGranted()
-                 /*getCurrentLocation(context) { lat, long ->
-                     location = "Latitude: $lat, Longitude: $long"
-                 }*/
              } else {
                  callbackDenied()
              }
          })
  }
 
-fun subscribeToLocationUpdates(context: Context, callback: (Location) -> Unit){
+/*fun subscribeToLocationUpdates(context: Context, callback: (Location) -> Unit){
     val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     if (ActivityCompat.checkSelfPermission(
             context,
@@ -73,22 +125,20 @@ fun subscribeToLocationUpdates(context: Context, callback: (Location) -> Unit){
         //                                          int[] grantResults)
         // to handle the case where the user grants the permission. See the documentation
         // for ActivityCompat#requestPermissions for more details.
-        Log.e("sebastrack", "subscribing, no tenia permisos")
         return
     } else {
-        Log.d("sebastrack", "Subscribing posta")
+        //val locationRequest  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
         val locationRequest  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
             .setMinUpdateIntervalMillis(5000)
             .setMaxUpdateDelayMillis(30000)
             .build();
-
-        fusedLocationProviderClient.requestLocationUpdates(
+        val task = fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
             callback,
             Looper.getMainLooper()
         )
     }
-}
+}*/
 
 fun unSuscribeToLocationUpdates(context: Context, callback: (Location) -> Unit){
     Log.d("sebastrack", "unsubscribing.")

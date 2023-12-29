@@ -74,6 +74,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    //androidX service extension
+    implementation("androidx.core:core:1.12.0")
     //navigation
     val navVersion = "2.7.5"
     implementation("androidx.navigation:navigation-compose:$navVersion")
@@ -86,7 +88,8 @@ dependencies {
     //ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
-
+    //lifecycleScope for the service to run corroutines
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
@@ -110,5 +113,6 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-database:8.0.2")
 
     //Location Permissions
-    implementation ("com.google.accompanist:accompanist-permissions:0.25.0")
+    implementation ("com.google.accompanist:accompanist-permissions:0.28.0")
+
 }

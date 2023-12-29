@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,11 +32,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
-import com.sebastiancorradi.track.services.LocationService
-import com.sebastiancorradi.track.ui.components.checkLocationGranted
-import com.sebastiancorradi.track.ui.components.hasLocationPermission
-import com.sebastiancorradi.track.ui.components.subscribeToLocationUpdates
+import com.sebastiancorradi.track.services.ForegroundLocationService
+import com.sebastiancorradi.track.ui.components.RequestPermissions2
 import com.sebastiancorradi.track.ui.components.unSuscribeToLocationUpdates
 
 private lateinit var viewModel: LocationViewModel
@@ -44,20 +45,24 @@ private lateinit var viewModel: LocationViewModel
 fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
     val context = LocalContext.current
     viewModel = _viewModel
-    var location by remember { mutableStateOf("Your location") }
-
+    val location by remember { mutableStateOf("Your location") }
+    val state = viewModel.mainScreenUIState.collectAsState()
     // Create a permission launcher
-    val requestPermissionLauncher = checkLocationGranted(
-        {
-            subscribeToLocationUpdates(context, ::locationUpdate)
-        },
-        {
-            permissionDenied()
-        },
-    )
+    //TODO ver si hace falta algo visual que se hidrate desde el estado, para que lo dibuje de nuevo
+    /*
+    if (hasLocationAndPostPermissions(context)) {
+        //subscribeToLocationUpdates(context, ::locationUpdate)
+    } else {
+        permissionDenied()
+    }*/
+    //TODO cambiar la logica, tener un flag en el estado para saber si tengo que pedir el permiso
+    RequestPermissions3(state.value.requestLocationPermission, state.value.requestNotificationPermission)
 
     setLifeCycleObserver()
 
+    if(state.value.startForeground) {
+        startForegroundLocationService(LocalContext.current)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -65,61 +70,49 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
-            onClick = {
-                if (hasLocationPermission(context)) {
-                    subscribeToLocationUpdates(context, ::locationUpdate)
-                } else {
-                    // Request location permission
-                    requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                }
-            }
-        ) {
+        Button(onClick = {
+            viewModel.allowStandardClicked()
+            /*if (hasLocationAndPostPermissions(context)) {
+                subscribeToLocationUpdates(context, ::locationUpdate)
+            } else {
+                // Request location permission
+                viewModel.allowStandardClicked()
+
+            }*/
+        }) {
             Text(text = "Allow Standard")
         }
+
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                if (hasLocationPermission(context)) {
-                    startForegroundLocationService(context)
-                } else {
-                    // Request location permission
-                    requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                }
-            }
-        ) {
+        Button(onClick = {
+            /*if (hasLocationAndPostPermissions(context)) {
+                startForegroundLocationService(context)
+            } else {
+                // Request location permission
+                //TODO pedir permsos,
+            // requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+
+            }*/
+            viewModel.allowForegroundClicked()
+        }) {
             Text(text = "Allow Foreground")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                if (hasLocationPermission(context)) {
-                    Log.e("Sebastito", "click, luego tenia permisos")
-                    viewModel.startLocationUpdates()
-                } else {
-                    // Request location permission
-                    Log.e("Sebastito", "click, luego launchPermissionsLauncher")
-                    requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                }
-            }
-        ) {
-            Text(text = "nuevo Foreground")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+
         //TODO check if this is ok
         Text(text = location.toString())
     }
 }
 
-private fun startForegroundLocationService(context: Context){
+private fun startForegroundLocationService(context: Context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val intent = Intent(context, LocationService::class.java)
-        Log.e("Sebastito", "about to call StartForegroundService")// Build the intent for the service
-        //context.startForegroundService(intent)
-        context.startService(intent)
+        val intent = Intent(context, ForegroundLocationService::class.java)
+        context.startForegroundService(intent)
     }
 
 }
+
 @Composable
 fun setLifeCycleObserver() {
     val TAG = "sebastrack"
@@ -129,35 +122,42 @@ fun setLifeCycleObserver() {
             Lifecycle.Event.ON_CREATE -> {
                 Log.d(TAG, "onCreate")
             }
+
             Lifecycle.Event.ON_START -> {
                 Log.d(TAG, "On Start")
             }
+
             Lifecycle.Event.ON_RESUME -> {
                 Log.d(TAG, "On Resume")
+                Log.e("Sebastrack", "onresume: state: ${viewModel.mainScreenUIState.value}")
             }
+
             Lifecycle.Event.ON_PAUSE -> {
                 Log.d(TAG, "On Pause")
             }
+
             Lifecycle.Event.ON_STOP -> {
                 Log.d(TAG, "On Stop")
 
                 unSuscribeToLocationUpdates(context, ::locationUpdate)
             }
+
             Lifecycle.Event.ON_DESTROY -> {
                 Log.d(TAG, "On Destroy")
             }
+
             else -> {}
         }
     }
 }
 
-fun locationUpdate(location: Location){
+fun locationUpdate(location: Location) {
     //TODO develop what to do on updates
     Log.e(
-        "sebastrack",
-        "updated lat: ${location.latitude}, long: ${location.longitude}"
+        "sebastrack", "updated lat: ${location.latitude}, long: ${location.longitude}"
     )
 }
+
 private fun permissionDenied() {
     viewModel.permissionDenied()
 }
@@ -165,11 +165,9 @@ private fun permissionDenied() {
 private fun getCurrentLocation(context: Context, callback: (Double, Double) -> Unit) {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     if (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED
     ) {
         //TODO esto es cuando no tiene los permisos
@@ -182,17 +180,17 @@ private fun getCurrentLocation(context: Context, callback: (Double, Double) -> U
         // for ActivityCompat#requestPermissions for more details.
         return
     }
-    fusedLocationClient.lastLocation
-        .addOnSuccessListener { location ->
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            Log.e("Sebastrack", "getLastLocation success")
             if (location != null) {
                 val lat = location.latitude
                 val long = location.longitude
                 callback(lat, long)
             }
-        }
-        .addOnFailureListener { exception ->
+        }.addOnFailureListener { exception ->
             // Handle location retrieval failure
             exception.printStackTrace()
+            Log.e("Sebastrack", "getLastLocation failure: $exception")
         }
 }
 
@@ -213,4 +211,43 @@ fun ComposableLifecycle(
         }
     }
 }
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun RequestPermissions3(requestLocation: Boolean = false, requestNotification: Boolean = false) {
+    val permissions = mutableListOf<String>()
+    if (requestLocation){
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+    }
+    if (requestNotification){
+        permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    if (permissions.size == 0)
+        return
 
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    val permissionState = rememberMultiplePermissionsState(permissions = permissions){
+        // tiene un mapa <String, boolean
+        viewModel.permissionsGranted(it)
+
+    }
+
+    DisposableEffect(key1= lifeCycleOwner) {
+        val observer = LifecycleEventObserver{ source, event ->
+            when (event){
+                Lifecycle.Event.ON_START -> {
+                    permissionState.launchMultiplePermissionRequest()
+                }
+
+                else -> {
+
+                }
+            }
+        }
+        lifeCycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifeCycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+}

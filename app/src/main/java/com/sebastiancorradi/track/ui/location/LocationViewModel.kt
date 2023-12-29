@@ -1,26 +1,43 @@
 package com.sebastiancorradi.track.ui.location
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.sebastiancorradi.track.domain.StartTrackingUseCase
-import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.domain.AllowForegroundUseCase
+import com.sebastiancorradi.track.domain.AllowTrackingClicked
+import com.sebastiancorradi.track.domain.PermissionRequestUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
 ): ViewModel() {
+    @Inject
+    lateinit var allowTrackingUseCase: AllowTrackingClicked
+
+    @Inject
+    lateinit var permissionRequestUseCase: PermissionRequestUseCase
+
     //private var _mainScreenUIState = mutableStateOf(MainScreenUIState())
     private val _mainScreenUIState = MutableStateFlow(MainScreenUIState())
     val mainScreenUIState: StateFlow<MainScreenUIState> = _mainScreenUIState.asStateFlow()
     fun permissionDenied(){
         //TODO update state with the error and act in consequence
+    }
+
+    fun allowStandardClicked(){
+        _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = false)
+    }
+
+    fun allowForegroundClicked(){
+        val newValue = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
+        //_mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, foreground = true)
+        _mainScreenUIState.value = newValue
     }
 
     fun startLocationUpdates() {
@@ -41,5 +58,9 @@ class LocationViewModel @Inject constructor(
         /*viewModelScope.launch {
             locationPreferences.setLocationTurnedOn(false)
         }*/
+    }
+
+    fun permissionsGranted(permissions: Map<String, Boolean>) {
+        _mainScreenUIState.value = permissionRequestUseCase(_mainScreenUIState.value, permissions)
     }
 }

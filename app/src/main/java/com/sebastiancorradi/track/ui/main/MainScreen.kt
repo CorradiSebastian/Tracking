@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.ui.components.LoadingButton
+import com.sebastiancorradi.track.ui.components.RequestPermissions2
 import com.sebastiancorradi.track.ui.theme.TrackTheme
 
  var _navController: NavController? = null
@@ -54,6 +55,7 @@ fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewMod
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
+        //RequestPermissions2()
         Row(modifier = Modifier.padding(24.dp),
             ) {
             OutlinedTextField(value = "Not Tracking", onValueChange = {} )

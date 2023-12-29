@@ -2,7 +2,12 @@ package com.sebastiancorradi.track
 
 import android.app.Application
 import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.sebastiancorradi.track.domain.AllowForegroundUseCase
+import com.sebastiancorradi.track.domain.AllowTrackingClicked
+import com.sebastiancorradi.track.domain.PermissionRequestUseCase
+import com.sebastiancorradi.track.repository.LocationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,5 +37,21 @@ class TrackApp: Application() {
             application: Application
         ) = LocationServices.getFusedLocationProviderClient(application)
 
+        @Provides
+        fun provideLocationRepository(
+            fusedLocationProviderClient: FusedLocationProviderClient
+        ) = LocationRepository(fusedLocationProviderClient)
+
+        @Provides
+        fun provideAllowForegroundUseCase(
+        ) = AllowForegroundUseCase()
+
+        @Provides
+        fun provideAllowTrackingClicked(
+        ) = AllowTrackingClicked()
+
+        @Provides
+        fun providePermissionRequestUseCase(
+        ) = PermissionRequestUseCase()
     }
 }

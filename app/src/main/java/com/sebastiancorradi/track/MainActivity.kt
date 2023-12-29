@@ -23,7 +23,6 @@ class MainActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
         if (auth.currentUser == null) {
-            Log.e("Sebas", "no estaba logeado")
             setContent {
                 AppNavigation( locationViewModel)
             }
@@ -32,7 +31,6 @@ class MainActivity: ComponentActivity() {
             //finish()
             return
         } else {
-            Log.e("Sebas", "SI estaba logeado")
             setContent {
                 AppNavigation(locationViewModel)
             }
