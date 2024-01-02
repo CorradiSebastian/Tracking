@@ -22,6 +22,7 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.R
+import com.sebastiancorradi.track.domain.StartTrackingUseCase
 import com.sebastiancorradi.track.repository.LocationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -45,8 +46,13 @@ import javax.inject.Inject
 class ForegroundLocationService : LifecycleService() {
 //class ForegroundLocationService() : Service(), LifecycleOwner {
 
+    //@Inject
+    //lateinit var locationRepository: LocationRepository
+
     @Inject
-    lateinit var locationRepository: LocationRepository
+    lateinit var startTrackingUseCase: StartTrackingUseCase
+    @Inject
+    lateinit var stopTrackingUseCase: StartTrackingUseCase
 /*
     @Inject
     lateinit var locationPreferences: LocationPreferences*/
@@ -74,9 +80,11 @@ class ForegroundLocationService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        Log.e("Sebastrack", "onStartCommand")
         if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
             stopSelf();
-            locationRepository.stopLocationUpdates()
+            //locationRepository.stopLocationUpdates()
+            stopTrackingUseCase()
             return START_NOT_STICKY
         }
         val notification = buildNotification(null)
@@ -111,8 +119,8 @@ class ForegroundLocationService : LifecycleService() {
                         locationRepository.startLocationUpdates()
                     }
                 }*/
-                Log.e("Sebastrack", "about to startLocationUpdates")
-                locationRepository.startLocationUpdates()
+                Log.e("Sebastrack", "about to call usecase, starting location updates")
+                startTrackingUseCase()
             }
             // Update any foreground notification when we receive location updates.
             /*lifecycleScope.launch {
@@ -121,7 +129,6 @@ class ForegroundLocationService : LifecycleService() {
         }
 
         // Decide whether to remain in the background, promote to the foreground, or stop.
-        manageLifetime()
 
         // In case we are stopped by the system, have the system restart this service so we can
         // manage our lifetime appropriately.
@@ -151,41 +158,11 @@ class ForegroundLocationService : LifecycleService() {
             // will be recreated and bind again shortly. Wait a few seconds, and if still not bound,
             // manage our lifetime accordingly.
             delay(UNBIND_DELAY_MILLIS)
-            manageLifetime()
+            //manageLifetime()
         }
         // Allow clients to rebind, in which case onRebind will be called.
         return true
     }
-
-    private fun manageLifetime() {
-        /*when {
-            // We should not be in the foreground while UI clients are bound.
-            isBound() -> exitForeground()
-
-            // Location updates were started.
-            locationRepository.isReceivingLocationUpdates.value -> enterForeground()
-
-            // Nothing to do, so we can stop.
-            else -> stopSelf()
-        }*/
-    }
-
-    private fun exitForeground() {
-        if (isForeground) {
-            isForeground = false
-            stopForeground(true)
-        }
-    }
-
-   /* private fun enterForeground() {
-        if (!isForeground) {
-            isForeground = true
-
-            // Show notification with the latest location.
-            //showNotification(locationRepository.lastLocation.value)
-            showNotification(Location("pro vi der"))
-        }
-    }*/
 
     private fun showNotification(location: Location?) {
         if (!isForeground) {
@@ -223,12 +200,7 @@ class ForegroundLocationService : LifecycleService() {
             Intent(this, this::class.java).setAction(ACTION_STOP_UPDATES),
             FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-//////////////////////////////////
-/*        val stopSelf = Intent(this, SameService::class.java)
-        stopSelf.action = this.ACTION_STOP_SERVICE
-        val pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT)
-        builder.addAction(R.drawable.ic_launcher, "Stop", pStopSelf)*/
-        ////////////////////////////////////////////////////////////////////////
+
         val contentText = if (location != null) {
             //getString(R.string.location_lat_lng, location.latitude, location.longitude)
             "valor"
@@ -255,11 +227,11 @@ class ForegroundLocationService : LifecycleService() {
     // Methods for clients.
 
     fun startLocationUpdates() {
-        locationRepository.startLocationUpdates()
+        startTrackingUseCase()
     }
 
     fun stopLocationUpdates() {
-        locationRepository.stopLocationUpdates()
+        stopTrackingUseCase()
     }
 
     /** Binder which provides clients access to the service. */

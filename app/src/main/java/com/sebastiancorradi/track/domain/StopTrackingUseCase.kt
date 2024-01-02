@@ -1,16 +1,13 @@
 package com.sebastiancorradi.track.domain
 
-class StopTrackingUseCase  {
-    suspend operator fun invoke() {
-        //suspend operator fun invoke(): StartResult {
-        /*val result = webService.login(username, password)
+import com.sebastiancorradi.track.repository.LocationRepository
+import javax.inject.Inject
 
-        return if (result.isSuccessful) {
-            val user = result.body()
 
-            LoginResult.Success(user)
-        } else {
-            LoginResult.Failure
-        }*/
+class StopTrackingUseCase  @Inject constructor(
+    private val locationRepository: LocationRepository
+)  {
+    operator fun invoke() {
+        locationRepository.stopLocationUpdates()
     }
 }

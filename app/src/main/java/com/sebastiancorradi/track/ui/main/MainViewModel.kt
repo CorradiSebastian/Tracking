@@ -27,12 +27,8 @@ class MainViewModel @Inject constructor(
     val mainScreenUIState: StateFlow<MainScreenUIState> = _mainScreenUIState.asStateFlow()
     fun startTrackingClicked(){
         _mainScreenUIState.update {
+            //TODO pasar a usecase
                 currentState -> currentState.copy(tracking = !currentState.tracking)
-        }
-        if (_mainScreenUIState.value.tracking){
-            StartTrackingUseCase()
-        } else {
-            StopTrackingUseCase()
         }
     }
 

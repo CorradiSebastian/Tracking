@@ -1,17 +1,17 @@
 package com.sebastiancorradi.track.domain
 
-class StartTrackingUseCase() {
+import android.util.Log
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.sebastiancorradi.track.repository.LocationRepository
+import javax.inject.Inject
 
-    suspend operator fun invoke() {
-    //suspend operator fun invoke(): StartResult {
-        /*val result = webService.login(username, password)
 
-        return if (result.isSuccessful) {
-            val user = result.body()
+class StartTrackingUseCase @Inject constructor(
+    private val locationRepository: LocationRepository
+) {
 
-            LoginResult.Success(user)
-        } else {
-            LoginResult.Failure
-        }*/
+    operator fun invoke() {
+        Log.e("Sebastrack", "usecase, starting location updates")
+        locationRepository.startLocationUpdates()
     }
 }

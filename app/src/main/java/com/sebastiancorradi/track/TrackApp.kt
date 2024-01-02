@@ -7,6 +7,8 @@ import com.google.android.gms.location.LocationServices
 import com.sebastiancorradi.track.domain.AllowForegroundUseCase
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
+import com.sebastiancorradi.track.domain.StartTrackingUseCase
+import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import com.sebastiancorradi.track.repository.LocationRepository
 import dagger.Module
 import dagger.Provides
@@ -53,5 +55,13 @@ class TrackApp: Application() {
         @Provides
         fun providePermissionRequestUseCase(
         ) = PermissionRequestUseCase()
+
+        @Provides
+        fun provideStartTrackingUseCase(locationRepository: LocationRepository
+        ) = StartTrackingUseCase(locationRepository)
+
+        @Provides
+        fun provideStopTrackingUseCase(locationRepository: LocationRepository
+        ) = StopTrackingUseCase(locationRepository)
     }
 }

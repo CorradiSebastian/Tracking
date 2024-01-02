@@ -38,6 +38,7 @@ class LocationRepository @Inject constructor(
         // making a network request, etc.), either change to a background thread from the callback,
         // or create a HandlerThread and pass its Looper here instead.
         // See https://developer.android.com/reference/android/os/HandlerThread.
+        Log.e("Sebastrack", "usecase, starting, request: $request")
         fusedLocationProviderClient.requestLocationUpdates(
             request,
             callback,
@@ -54,6 +55,7 @@ class LocationRepository @Inject constructor(
 
     private inner class Callback : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
+            Log.e("Sebastrack", "updateing locations: ${result.lastLocation}")
             _lastLocation.value = result.lastLocation
         }
     }
