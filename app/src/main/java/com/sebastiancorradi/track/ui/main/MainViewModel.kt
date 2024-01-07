@@ -32,23 +32,5 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun startLocationUpdates() {
-        //serviceConnection.service?.startLocationUpdates()
-        // Store that the user turned on location updates.
-        // It's possible that the service was not connected for the above call. In that case, when
-        // the service eventually starts, it will check the persisted value and react appropriately.
-        /*viewModelScope.launch {
-            locationPreferences.setLocationTurnedOn(true)
-        }*/
-    }
 
-    private fun stopLocationUpdates() {
-        //serviceConnection.service?.stopLocationUpdates()
-        // Store that the user turned off location updates.
-        // It's possible that the service was not connected for the above call. In that case, when
-        // the service eventually starts, it will check the persisted value and react appropriately.
-        /*viewModelScope.launch {
-            locationPreferences.setLocationTurnedOn(false)
-        }*/
-    }
 }

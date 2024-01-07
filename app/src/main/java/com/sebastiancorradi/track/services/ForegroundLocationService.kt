@@ -22,10 +22,15 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.R
+import com.sebastiancorradi.track.TrackApp
+import com.sebastiancorradi.track.domain.CreateNotificationChannelUseCase
+import com.sebastiancorradi.track.domain.CreateNotificationUseCase
+import com.sebastiancorradi.track.domain.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.StartTrackingUseCase
-import com.sebastiancorradi.track.repository.LocationRepository
+import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,18 +49,21 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class ForegroundLocationService : LifecycleService() {
-//class ForegroundLocationService() : Service(), LifecycleOwner {
-
-    //@Inject
-    //lateinit var locationRepository: LocationRepository
 
     @Inject
     lateinit var startTrackingUseCase: StartTrackingUseCase
     @Inject
-    lateinit var stopTrackingUseCase: StartTrackingUseCase
-/*
+    lateinit var stopTrackingUseCase: StopTrackingUseCase
     @Inject
-    lateinit var locationPreferences: LocationPreferences*/
+    lateinit var saveLocationUseCase: SaveLocationUseCase
+    @Inject
+    lateinit var createNotificationUseCase: CreateNotificationUseCase
+    @Inject
+    lateinit var createNotificationChannelUseCase: CreateNotificationChannelUseCase
+
+    private var _lastLocationFlow: MutableStateFlow<Location?>? = null
+
+    private val deviceId by lazy{ (applicationContext as TrackApp).getDeviceID()}
 
     private val localBinder = LocalBinder()
     private var bindCount = 0
@@ -68,9 +76,7 @@ class ForegroundLocationService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
 
-        createNotificationChannel()
-        //TODO ver que pasa si llamo a startForeground una vez que ya tengo el location
-        startForeground(NOTIFICATION_ID, buildNotification(null))
+        createNotificationChannelUseCase(this)
 
     }
 
@@ -80,14 +86,18 @@ class ForegroundLocationService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        Log.e("Sebastrack", "onStartCommand")
+        Log.e("Sebastrack", "onStartCommand, action: ${intent?.getAction()}")
         if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
             stopSelf();
+            Log.e("Sebastrack", "onStartCommand, stopped")
             //locationRepository.stopLocationUpdates()
             stopTrackingUseCase()
+
             return START_NOT_STICKY
         }
-        val notification = buildNotification(null)
+        Log.e("Sebastrack", "onStartCommand, si ves esto al cerrar o detener... esta mal")
+        //val notification = buildNotification(null)
+        val notification = createNotificationUseCase(this)
         ServiceCompat.startForeground(
             /* service = */ this,
             /* id = */ 100, // Cannot be 0
@@ -95,44 +105,37 @@ class ForegroundLocationService : LifecycleService() {
             /* foregroundServiceType = */
             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
         )
-        // This action comes from our ongoing notification. The user requested to stop updates.
-        /*if (intent?.action == ACTION_STOP_UPDATES) {
-            stopLocationUpdates()
-            lifecycleScope.launch {
-                locationPreferences.setLocationTurnedOn(false)
-            }
-        }*/
+
 
         // Startup tasks only happen once.
         if (!started) {
             started = true
             // Check if we should turn on location updates.
             lifecycleScope.launch {
-                /*if (locationPreferences.isLocationTurnedOn.first()) {
-                    // If the service is restarted for any reason, we may have lost permission to
-                    // access location since last time. In that case we won't turn updates on here,
-                    // and the service will stop when we manage its lifetime below. Then the user
-                    // will have to open the app to turn updates on again.
-                    if (hasPermission(permission.ACCESS_FINE_LOCATION) ||
-                        hasPermission(permission.ACCESS_COARSE_LOCATION)
-                    ) {
-                        locationRepository.startLocationUpdates()
-                    }
-                }*/
-                Log.e("Sebastrack", "about to call usecase, starting location updates")
-                startTrackingUseCase()
+
+                val flow = startTrackingUseCase(deviceId)
+                updateLastLocationFlow(flow)
             }
-            // Update any foreground notification when we receive location updates.
-            /*lifecycleScope.launch {
-                locationRepository.lastLocation.collect(::showNotification)
-            }*/
+
         }
 
-        // Decide whether to remain in the background, promote to the foreground, or stop.
-
-        // In case we are stopped by the system, have the system restart this service so we can
-        // manage our lifetime appropriately.
         return START_STICKY
+    }
+
+    private fun updateLastLocationFlow(flow: MutableStateFlow<Location?>?){
+        //TODO ver qu eno se sobreescriba ni quede algun flow colgando en el eter cosmico
+        _lastLocationFlow = flow
+        lifecycleScope.launch {
+        //viewModelScope.launch {
+            // Trigger the flow and consume its elements using collect
+            _lastLocationFlow?.collect { location ->
+                // Update DB, add latest location
+                Log.e("Sebastrack", "updating location from inside service, location: $location")
+                location?.let {
+                    saveLocationUseCase.invoke(it, deviceId)
+                }
+            }
+        }
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -164,82 +167,15 @@ class ForegroundLocationService : LifecycleService() {
         return true
     }
 
-    private fun showNotification(location: Location?) {
-        if (!isForeground) {
-            return
-        }
 
-        createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification(location))
-    }
 
-    private fun createNotificationChannel() {
-        if (VERSION.SDK_INT >= VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                getString(R.string.app_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(notificationChannel)
-        }
-    }
-
-    private fun buildNotification(location: Location?) : Notification {
-        // Tapping the notification opens the app.
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            packageManager.getLaunchIntentForPackage(this.packageName),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        // Include an action to stop location updates without going through the app UI.
-        val stopIntent = PendingIntent.getService(
-            this,
-            0,
-            Intent(this, this::class.java).setAction(ACTION_STOP_UPDATES),
-            FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val contentText = if (location != null) {
-            //getString(R.string.location_lat_lng, location.latitude, location.longitude)
-            "valor"
-        } else {
-            //getString(R.string.waiting_for_location)
-            "Esperando"
-        }
-
-        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(contentText)
-            .setContentIntent(pendingIntent)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            //TODO create icons
-            //.addAction(R.drawable.ic_stop, getString(R.string.stop), stopIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "stop", stopIntent)
-            .setOngoing(true)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .build()
-    }
-
-    // Methods for clients.
-
-    fun startLocationUpdates() {
-        startTrackingUseCase()
-    }
-
-    fun stopLocationUpdates() {
-        stopTrackingUseCase()
-    }
 
     /** Binder which provides clients access to the service. */
     internal inner class LocalBinder : Binder() {
         fun getService(): ForegroundLocationService = this@ForegroundLocationService
     }
 
-    private companion object {
+    companion object {
         const val UNBIND_DELAY_MILLIS = 2000.toLong() // 2 seconds
         const val NOTIFICATION_ID = 1
         const val NOTIFICATION_CHANNEL_ID = "LocationUpdates"

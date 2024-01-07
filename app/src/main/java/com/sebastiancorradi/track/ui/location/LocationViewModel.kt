@@ -1,10 +1,9 @@
 package com.sebastiancorradi.track.ui.location
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.sebastiancorradi.track.domain.AllowForegroundUseCase
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
+import com.sebastiancorradi.track.repository.DBConnection
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +39,10 @@ class LocationViewModel @Inject constructor(
         _mainScreenUIState.value = newValue
     }
 
+    fun testDB(){
+        val dbRepository = DBConnection()
+        dbRepository.testAddSomething()
+    }
     fun startLocationUpdates() {
         //serviceConnection.service?.startLocationUpdates()
         // Store that the user turned on location updates.

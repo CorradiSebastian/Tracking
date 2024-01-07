@@ -16,9 +16,10 @@ import javax.inject.Singleton
 
 @Singleton
 class LocationRepository @Inject constructor(
-    private val fusedLocationProviderClient: FusedLocationProviderClient
+    private val fusedLocationProviderClient: FusedLocationProviderClient,
 ) {
     private val callback = Callback()
+
 
     //TODO check is  is ok to have a Flow in the repository
     private val _isReceivingUpdates = MutableStateFlow(false)
@@ -28,7 +29,8 @@ class LocationRepository @Inject constructor(
     val lastLocation = _lastLocation.asStateFlow()
 
     @SuppressLint("MissingPermission") // Only called when holding location permission.
-    fun startLocationUpdates() {
+    fun startLocationUpdates():MutableStateFlow<Location?> {
+
         val request  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
             .setMinUpdateIntervalMillis(5000)
             .setMaxUpdateDelayMillis(15000)
@@ -45,6 +47,7 @@ class LocationRepository @Inject constructor(
             Looper.getMainLooper()
         )
         _isReceivingUpdates.value = true
+        return _lastLocation
     }
 
     fun stopLocationUpdates() {
@@ -55,8 +58,12 @@ class LocationRepository @Inject constructor(
 
     private inner class Callback : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-            Log.e("Sebastrack", "updateing locations: ${result.lastLocation}")
-            _lastLocation.value = result.lastLocation
+            Log.e("Sebastrack", "updating locations: ${result.lastLocation}")
+            result.lastLocation?.let {
+                //saveLocation(it)
+                _lastLocation.value = result.lastLocation
+            }
         }
     }
+
 }

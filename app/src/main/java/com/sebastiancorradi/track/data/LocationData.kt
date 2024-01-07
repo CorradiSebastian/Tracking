@@ -1,9 +1,14 @@
 package com.sebastiancorradi.track.data
 
 data class LocationData(
-    val id: Int,
     val user: String,
+    val ubicacion: DBLocation,
+    ) {
+}
+
+data class DBLocation(
     val lat: Double,
     val long: Double,
-    val dateTime: String) {
-}
+    val date: Long,
+    var deviceId:String,
+)

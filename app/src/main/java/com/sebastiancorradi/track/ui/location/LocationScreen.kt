@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +23,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,9 +36,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
-import com.sebastiancorradi.track.ui.components.RequestPermissions2
 import com.sebastiancorradi.track.ui.components.unSuscribeToLocationUpdates
+
 
 private lateinit var viewModel: LocationViewModel
 
@@ -102,12 +104,31 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
 
         //TODO check if this is ok
         Text(text = location.toString())
+        Button(onClick = {
+
+            viewModel.testDB()
+        }) {
+            Text(text = "TestDB")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        //TODO check if this is ok
+        Text(text = location.toString())
+        Button(onClick = {
+
+            val deviceId = (context.applicationContext as TrackApp).getDeviceID()
+
+            Toast.makeText(context, deviceId, Toast.LENGTH_LONG).show()
+        }) {
+            Text(text = "getDeviceID")
+        }
+
     }
 }
 
 private fun startForegroundLocationService(context: Context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val intent = Intent(context, ForegroundLocationService::class.java)
+        val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
         context.startForegroundService(intent)
     }
 
@@ -139,7 +160,7 @@ fun setLifeCycleObserver() {
             Lifecycle.Event.ON_STOP -> {
                 Log.d(TAG, "On Stop")
 
-                unSuscribeToLocationUpdates(context, ::locationUpdate)
+                //unSuscribeToLocationUpdates(context, ::locationUpdate)
             }
 
             Lifecycle.Event.ON_DESTROY -> {
