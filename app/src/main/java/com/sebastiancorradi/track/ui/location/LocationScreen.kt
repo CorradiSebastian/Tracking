@@ -106,7 +106,7 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
         Text(text = location.toString())
         Button(onClick = {
 
-            viewModel.testDB()
+            Toast.makeText(context, "borrar esto", Toast.LENGTH_LONG).show()
         }) {
             Text(text = "TestDB")
         }
@@ -121,6 +121,15 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
             Toast.makeText(context, deviceId, Toast.LENGTH_LONG).show()
         }) {
             Text(text = "getDeviceID")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+
+            val deviceId = (context.applicationContext as TrackApp).getDeviceID()
+
+            _viewModel.locationsFlowRequested(deviceId)
+        }) {
+            Text(text = "getLocationsFLow")
         }
 
     }

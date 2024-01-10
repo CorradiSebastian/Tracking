@@ -1,6 +1,5 @@
 package com.sebastiancorradi.track.repository
 
-import android.location.Location
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -18,53 +17,45 @@ import javax.inject.Singleton
 
 @Singleton
 class DBConnection() {
+    private val TAG = "DBConnection"
     private val auth: FirebaseAuth by lazy { Firebase.auth}
-    private val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().reference.child("borrar3")
-    //private val authManager: AuthManager(context)
-    fun testAddSomething(){
-        //val myRef = database.getReference("message")
-        //myRef.setValue("Hello, World!")
-        val user = auth.currentUser
-        Log.e("Sebastrack", "about to write, user: $user")
-        val key = databaseReference.push().key
-        if (key != null){
-            databaseReference.child("ubicacion").setValue("hola carolassss")
-        }
-    }
+    private val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().reference.child("trackApp")
 
-    fun addLocation(location: Location, deviceId: String){
-
-        addLocation(DBLocation(location.latitude, location.longitude, location.time, deviceId))
-    }
     fun addLocation(dbLocation: DBLocation){
-        Log.e("Sebastrack", "about to write, location: $dbLocation")
+        Log.e(TAG, "addLocation, about to write, location: $dbLocation")
         val key = databaseReference.push().key
         if (key != null){
-            databaseReference.child("locations").child(dbLocation.deviceId).child(dbLocation.date.toString()).setValue(dbLocation)
+            databaseReference.child("locations").child(dbLocation.deviceId?:"").child(dbLocation.date.toString()).setValue(dbLocation)
         }
     }
 
-    fun getLocationFlow(userId: String): Flow<List<DBLocation>> {
+    fun getLocationFlow(deviceId: String): Flow<List<DBLocation>> {
+        Log.e(TAG, "getLocationFLow, deviceId: $deviceId")
         val flow = callbackFlow<List<DBLocation>> {
             val listener = databaseReference.addValueEventListener(object  : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val dbLocations = snapshot.children.mapNotNull {snapshot ->
-                        val dbLocation = snapshot.getValue(DBLocation::class.java)
-                        snapshot.key?.let { dbLocation?.copy() }
+
+                    try {
+                        val map = snapshot.getValue(true) as HashMap<*, *>
+                        val list = map.get("locations") as HashMap<*, *>
+                        val deviceItem = list.get(deviceId) as HashMap<String, DBLocation>
+                        val deviceItemList = deviceItem.values
+
+                        trySend(deviceItemList.toList())
+                    } catch (e: Exception){
+                        Log.e(TAG,  "error, e: $e")
+                        trySend(emptyList<DBLocation>())
                     }
-                    //TODO..... this
-                   // trySend(dbLocations.filter { it.id == "id del usuario" })
-                    trySend(dbLocations)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
+                    close(error.toException()) // Cierra el flujo en caso de cancelación o error
                 }
 
             })
             awaitClose{databaseReference.removeEventListener(listener)}
         }
-
         return flow
     }
+
 }

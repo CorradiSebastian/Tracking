@@ -10,6 +10,7 @@ import com.sebastiancorradi.track.domain.AllowForegroundUseCase
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.CreateNotificationChannelUseCase
 import com.sebastiancorradi.track.domain.CreateNotificationUseCase
+import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
 import com.sebastiancorradi.track.domain.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.StartTrackingUseCase
@@ -80,13 +81,18 @@ class TrackApp: Application() {
 
         @Provides
         fun provideSaveLocationUseCase(dbConnection: DBConnection,
-        ) = SaveLocationUseCase(dbConnection)
+                                        ) = SaveLocationUseCase(dbConnection)
+
+        @Provides
+        fun provideGetDBLocationsUseCase(dbConnection: DBConnection,
+                                         ) = GetDBLocationsUseCase(dbConnection)
 
         @Provides
         fun provideCreateNotificationUseCase() = CreateNotificationUseCase()
 
         @Provides
         fun provideCreateNotificationChannelUseCase() = CreateNotificationChannelUseCase()
+
 
     }
 }

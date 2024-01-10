@@ -9,7 +9,6 @@ class StopTrackingUseCase  @Inject constructor(
     private val locationRepository: LocationRepository
 )  {
     operator fun invoke() {
-        Log.e("Sebastrack2", "stoplocation called: $locationRepository")
         locationRepository.stopLocationUpdates()
     }
 }

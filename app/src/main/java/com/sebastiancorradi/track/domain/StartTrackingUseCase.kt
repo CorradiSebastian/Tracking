@@ -14,8 +14,6 @@ class StartTrackingUseCase @Inject constructor(
 ) {
 
     operator fun invoke(deviceID: String): MutableStateFlow<Location?> {
-        Log.e("Sebastrack", "usecase, starting location updates")
-        Log.e("Sebastrack2", "startLocation called: $locationRepository")
         return locationRepository.startLocationUpdates()
     }
 }
