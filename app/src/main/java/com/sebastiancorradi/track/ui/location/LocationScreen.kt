@@ -6,17 +6,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -25,8 +29,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
@@ -38,17 +47,24 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
-import com.sebastiancorradi.track.ui.components.unSuscribeToLocationUpdates
+import com.sebastiancorradi.track.store.UserStore
+import kotlinx.coroutines.flow.Flow
 
 
 private lateinit var viewModel: LocationViewModel
+val TAG = "LocationScreen"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
     val context = LocalContext.current
+
     viewModel = _viewModel
-    val location by remember { mutableStateOf("Your location") }
     val state = viewModel.mainScreenUIState.collectAsState()
+
+    val store = UserStore(context)
+    val tracking = store.getTrackingStatus.collectAsState(initial = false)
+
     // Create a permission launcher
     //TODO ver si hace falta algo visual que se hidrate desde el estado, para que lo dibuje de nuevo
     /*
@@ -101,32 +117,36 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
             Text(text = "Allow Foreground")
         }
         Spacer(modifier = Modifier.height(16.dp))
+        Log.e(TAG, "tracking vale: ${tracking.value}")
+        Log.e(TAG, "trackingLargo vale: ${state.value.trackFrequencySecs.toString()}")
+        Log.e(TAG, "enabled: ${!tracking.value}")
+        Text(text = "Frequency",
+            color = Color.Blue,
+            fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            modifier = Modifier.height(16.dp),
+            value = state.value.trackFrequencySecs.toString(),
+            maxLines = 2,
+            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            placeholder = {
+                Text(text = "update Frequency")
+            },
+           // value = viewModel.mainScreenUIState.collectAsState().value.trackFrequencySecs.toString(),
+            onValueChange = { newFrequency ->
+                _viewModel.updatedfrequency(newFrequency)
+            },
+            //TODO intentar sin esta opcion y validar en usecase
+            //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
 
-        //TODO check if this is ok
-        Text(text = location.toString())
-        Button(onClick = {
-
-            Toast.makeText(context, "borrar esto", Toast.LENGTH_LONG).show()
-        }) {
-            Text(text = "TestDB")
-        }
         Spacer(modifier = Modifier.height(16.dp))
 
         //TODO check if this is ok
-        Text(text = location.toString())
         Button(onClick = {
 
             val deviceId = (context.applicationContext as TrackApp).getDeviceID()
-
-            Toast.makeText(context, deviceId, Toast.LENGTH_LONG).show()
-        }) {
-            Text(text = "getDeviceID")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-
-            val deviceId = (context.applicationContext as TrackApp).getDeviceID()
-
             _viewModel.locationsFlowRequested(deviceId)
         }) {
             Text(text = "getLocationsFLow")
@@ -145,8 +165,7 @@ private fun startForegroundLocationService(context: Context) {
 
 @Composable
 fun setLifeCycleObserver() {
-    val TAG = "sebastrack"
-    val context = LocalContext.current
+    //val context = LocalContext.current
     ComposableLifecycle { _, event ->
         when (event) {
             Lifecycle.Event.ON_CREATE -> {
@@ -280,4 +299,10 @@ fun RequestPermissions3(requestLocation: Boolean = false, requestNotification: B
         }
     }
 
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview(){
+    LocationScreen()
 }

@@ -6,10 +6,14 @@ data class LocationData(
     ) {
 }
 
+enum class EventType {
+    START, STOP, TRACK
+}
 data class DBLocation(
     val lat: Double? = null,
     val long: Double? = null,
     val date: Long? = null,
     var deviceId:String? = null,
+    var eventType: EventType?= null,
 )
 

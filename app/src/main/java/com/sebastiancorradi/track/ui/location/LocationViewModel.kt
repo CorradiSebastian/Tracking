@@ -91,5 +91,10 @@ class LocationViewModel @Inject constructor(
         _mainScreenUIState.value = permissionRequestUseCase(_mainScreenUIState.value, permissions)
     }
 
+    fun updatedfrequency(newFrequency: String) {
+        Log.e(TAG, "newFrequency: $newFrequency")
+        _mainScreenUIState.value = _mainScreenUIState.value.copy(trackFrequencySecs = newFrequency.toInt())
+    }
+
 
 }

@@ -17,19 +17,23 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.TrackApp
+import com.sebastiancorradi.track.data.EventType
 import com.sebastiancorradi.track.domain.CreateNotificationChannelUseCase
 import com.sebastiancorradi.track.domain.CreateNotificationUseCase
 import com.sebastiancorradi.track.domain.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.store.UserStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,11 +74,14 @@ class ForegroundLocationService : LifecycleService() {
 
     private var started = false
     private var isForeground = false
+    private lateinit var store : UserStore
 
     private fun isBound() = bindCount > 0
 
     override fun onCreate() {
         super.onCreate()
+
+        store = UserStore(this)
 
         createNotificationChannelUseCase(this)
 
@@ -92,7 +99,10 @@ class ForegroundLocationService : LifecycleService() {
             Log.e("Sebastrack", "onStartCommand, stopped")
             //locationRepository.stopLocationUpdates()
             stopTrackingUseCase()
-
+            saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
+            lifecycleScope.launch {
+                store.saveTrackingStatus(false)
+            }
             return START_NOT_STICKY
         }
         Log.e("Sebastrack", "onStartCommand, si ves esto al cerrar o detener... esta mal")
@@ -109,12 +119,14 @@ class ForegroundLocationService : LifecycleService() {
 
         // Startup tasks only happen once.
         if (!started) {
+
             started = true
             // Check if we should turn on location updates.
             lifecycleScope.launch {
-
+                store.saveTrackingStatus(true)
                 val flow = startTrackingUseCase(deviceId)
                 updateLastLocationFlow(flow)
+                saveLocationUseCase.invoke(Location(null), deviceId, EventType.START)
             }
 
         }
@@ -132,7 +144,7 @@ class ForegroundLocationService : LifecycleService() {
                 // Update DB, add latest location
                 Log.e("Sebastrack", "updating location from inside service, location: $location")
                 location?.let {
-                    saveLocationUseCase.invoke(it, deviceId)
+                    saveLocationUseCase.invoke(it, deviceId, EventType.TRACK)
                 }
             }
         }

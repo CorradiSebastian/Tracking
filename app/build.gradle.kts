@@ -124,4 +124,6 @@ dependencies {
     //Location Permissions
     implementation ("com.google.accompanist:accompanist-permissions:0.28.0")
 
+    // Preferences DataStore (SharedPreferences like APIs)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }
