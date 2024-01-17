@@ -32,7 +32,6 @@ import javax.inject.Inject
 class LocationViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
 ): ViewModel() {
-   // private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
 
     @Inject
     lateinit var allowTrackingUseCase: AllowTrackingClicked
@@ -68,7 +67,6 @@ class LocationViewModel @Inject constructor(
 
     fun allowForegroundClicked(){
         _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
-        Log.e("LocationViewModel", "allowForeground, mainScrenUIState: ${mainScreenUIState.value}")
     }
 
     fun locationsFlowRequested(deviceId:String){
@@ -79,7 +77,6 @@ class LocationViewModel @Inject constructor(
         viewModelScope.launch {
             _dbLocationsFlow.collect { locations ->
                 // Update DB, add latest location
-                //Log.e("Sebastrack2", "locations modified. Size: ${locations.size}")
             }
         }
     }
@@ -119,18 +116,9 @@ class LocationViewModel @Inject constructor(
 
     fun stopForeground() {
         stopTrackingUseCase()
-        Log.e("LAQUEVA", "onCreate de foreground location service, STORE: $store, DATASTORE: ${store.getDataStore()},  trakcing flow = ${store.getTrackingStatus}")
-
-        Log.e("LAQUEVA", "afuera de la corutina, antes")
         runBlocking {
-            Log.e("LAQUEVA", "adentro de la corutina, antes")
             store.saveTrackingStatus(false)
-            Log.e("LAQUEVA", "adentro de la corutina, antes")}
-        Log.e("LAQUEVA", "afuera de la corutina, despues")
-        /*viewModelScope.launch {
-            store.saveTrackingStatus(false)
-        }*/
+        }
     }
-
 
 }

@@ -23,14 +23,11 @@ class UserStore(private val context: Context) {
     }
 
     val getTrackingStatus: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        Log.e("UserStore", "getTracking status ${preferences[TRACKING_KEY]}, datastore: ${context.dataStore}, preferences: $preferences")
         preferences[TRACKING_KEY] ?: false
     }
 
     suspend fun saveTrackingStatus(tracking: Boolean) {
-        Log.e("UserStore", "a punto de setear el tracking a : $tracking")
         context.dataStore.edit { preferences ->
-            Log.e("UserStore", "adentro userstorr setting traking: $tracking, datastore: ${context.dataStore}, preferences: $preferences")
             preferences[TRACKING_KEY] = tracking
         }
     }

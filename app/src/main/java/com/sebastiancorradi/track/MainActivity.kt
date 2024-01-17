@@ -24,7 +24,7 @@ class MainActivity: ComponentActivity() {
         auth = Firebase.auth
         if (auth.currentUser == null) {
             setContent {
-                AppNavigation( locationViewModel)
+                AppNavigation()
             }
             // Not signed in, launch the Sign In activity
             //startActivity(Intent(this, SignInActivity::class.java))
@@ -32,7 +32,7 @@ class MainActivity: ComponentActivity() {
             return
         } else {
             setContent {
-                AppNavigation(locationViewModel)
+                AppNavigation()
             }
         }
     }

@@ -39,6 +39,7 @@ import androidx.core.app.ActivityCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -49,6 +50,7 @@ import com.google.android.gms.location.LocationServices
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
+import javax.inject.Inject
 
 
 private lateinit var viewModel: LocationViewModel
@@ -58,19 +60,21 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
+//fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
+fun LocationScreen(_viewModel: LocationViewModel = hiltViewModel()) {
+
     val context = LocalContext.current
 
     viewModel = _viewModel
     val state = viewModel.mainScreenUIState.collectAsState()
 
     val store =  UserStore(context.applicationContext)
+
     val trackingFlow = remember {
         store.getTrackingStatus
     }
 
     val tracking = trackingFlow.collectAsState(initial = false).value
-    Log.e(TAG, "onCreate de LocationScreen, STORE: $store, datastore: ${store.getDataStore()} Trcking: $tracking")
     // Create a permission launcher
     //TODO ver si hace falta algo visual que se hidrate desde el estado, para que lo dibuje de nuevo
     /*
@@ -170,7 +174,6 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
 private fun startForegroundLocationService(context: Context, frequency: String) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
-        Log.e(TAG, "about to send intent, frequency: $frequency")
         intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency)
         context.startForegroundService(intent)
         viewModel.foregroundStarted()
@@ -224,9 +227,6 @@ fun setLifeCycleObserver() {
 
 fun locationUpdate(location: Location) {
     //TODO develop what to do on updates
-    Log.e(
-        "sebastrack", "updated lat: ${location.latitude}, long: ${location.longitude}"
-    )
 }
 
 private fun permissionDenied() {

@@ -11,7 +11,7 @@ import com.sebastiancorradi.track.ui.main.MainScreen
 import com.sebastiancorradi.track.ui.splash.SplashScreen
 
 @Composable
-fun AppNavigation(locationViewModel: LocationViewModel){
+fun AppNavigation(){
     val navController = rememberNavController()
     NavHost(
         navController = navController,
@@ -24,9 +24,7 @@ fun AppNavigation(locationViewModel: LocationViewModel){
             MainScreen(navController)
         }
         composable(AppScreens.LocationScreen.route){
-            //val viewModel: LocationViewModel by hiltNavGraphViewModels(R.id.my_graph)
-           // val viewModel: LocationViewModel by viewModels()
-            LocationScreen(locationViewModel)
+            LocationScreen()
         }
     }
 }

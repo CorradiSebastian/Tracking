@@ -79,7 +79,6 @@ class ForegroundLocationService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         //store = UserStore(applicationContext)
-        Log.e("LAQUEVA", "onCreate de foreground location service, STORE: $store, DATASTORE: ${store.getDataStore()},  trakcing flow = ${store.getTrackingStatus}")
         createNotificationChannelUseCase(this)
     }
 
@@ -97,14 +96,9 @@ class ForegroundLocationService : LifecycleService() {
             //locationRepository.stopLocationUpdates()
             stopTrackingUseCase()
             saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
-            Log.e("status", "about to launch coroutine, to set tracking false")
             val job = lifecycleScope.launch {
-                Log.e("status", "adentro de la corutina, antes")
                 runBlocking {  store.saveTrackingStatus(false) }
-                Log.e("status", "adentro de la corutina, despues")
             }
-            Log.e("status", "despues de lanzar corutina, job: $job")
-            Log.e("status", "about to launch coroutine, to set tracking false")
             started = false
             return START_NOT_STICKY
         }
@@ -125,9 +119,7 @@ class ForegroundLocationService : LifecycleService() {
 
             started = true
             // Check if we should turn on location updates.
-            Log.e("status", "about to launch coroutine, to set tracking true, frequency: $frequencySecs")
             lifecycleScope.launch {
-                Log.e("status", "launched coroutine, to set tracking true, frequency: $frequencySecs")
                 store.saveTrackingStatus(true)
                 val flow = startTrackingUseCase(deviceId, frequencySecs * 1000)
                 updateLastLocationFlow(flow)
