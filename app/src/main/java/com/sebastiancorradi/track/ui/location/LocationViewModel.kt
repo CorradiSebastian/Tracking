@@ -1,6 +1,10 @@
 package com.sebastiancorradi.track.ui.location
 
+import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -9,8 +13,11 @@ import com.sebastiancorradi.track.data.DBLocation
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
+import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.domain.UpdateFrequencyUseCase
 import com.sebastiancorradi.track.repository.DBConnection
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
+import com.sebastiancorradi.track.store.UserStore
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -18,14 +25,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
 ): ViewModel() {
+   // private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
+
     @Inject
     lateinit var allowTrackingUseCase: AllowTrackingClicked
+
+    @Inject
+    lateinit var stopTrackingUseCase: StopTrackingUseCase
 
     @Inject
     lateinit var permissionRequestUseCase: PermissionRequestUseCase
@@ -33,6 +46,11 @@ class LocationViewModel @Inject constructor(
     @Inject
     lateinit var getDBLocationsUseCase: GetDBLocationsUseCase
 
+    @Inject
+    lateinit var updateFrequencyUseCase: UpdateFrequencyUseCase
+
+    @Inject
+    lateinit var store : UserStore
 
     //private var _mainScreenUIState = mutableStateOf(MainScreenUIState())
     private val _mainScreenUIState = MutableStateFlow(MainScreenUIState())
@@ -49,16 +67,14 @@ class LocationViewModel @Inject constructor(
     }
 
     fun allowForegroundClicked(){
-        val newValue = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
-        //_mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, foreground = true)
-        _mainScreenUIState.value = newValue
+        _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
+        Log.e("LocationViewModel", "allowForeground, mainScrenUIState: ${mainScreenUIState.value}")
     }
 
     fun locationsFlowRequested(deviceId:String){
         getDBLocationsFlow(deviceId)
     }
     fun getDBLocationsFlow(deviceId: String){
-        Log.e("Sebastrack", "antes de pedir el flow, deviceID: $deviceId")
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
         viewModelScope.launch {
             _dbLocationsFlow.collect { locations ->
@@ -92,8 +108,28 @@ class LocationViewModel @Inject constructor(
     }
 
     fun updatedfrequency(newFrequency: String) {
-        Log.e(TAG, "newFrequency: $newFrequency")
-        _mainScreenUIState.value = _mainScreenUIState.value.copy(trackFrequencySecs = newFrequency.toInt())
+            val updatedFrequency = updateFrequencyUseCase(_mainScreenUIState.value.trackFrequencySecs, newFrequency)
+            _mainScreenUIState.value = _mainScreenUIState.value.copy(trackFrequencySecs = updatedFrequency)
+    }
+
+    fun foregroundStarted() {
+        //TODO hacer Usecase
+        _mainScreenUIState.value = _mainScreenUIState.value.copy(startForeground = false)
+    }
+
+    fun stopForeground() {
+        stopTrackingUseCase()
+        Log.e("LAQUEVA", "onCreate de foreground location service, STORE: $store, DATASTORE: ${store.getDataStore()},  trakcing flow = ${store.getTrackingStatus}")
+
+        Log.e("LAQUEVA", "afuera de la corutina, antes")
+        runBlocking {
+            Log.e("LAQUEVA", "adentro de la corutina, antes")
+            store.saveTrackingStatus(false)
+            Log.e("LAQUEVA", "adentro de la corutina, antes")}
+        Log.e("LAQUEVA", "afuera de la corutina, despues")
+        /*viewModelScope.launch {
+            store.saveTrackingStatus(false)
+        }*/
     }
 
 

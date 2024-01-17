@@ -1,18 +1,19 @@
 package com.sebastiancorradi.track.ui.location
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,12 +21,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +36,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -48,11 +49,12 @@ import com.google.android.gms.location.LocationServices
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
-import kotlinx.coroutines.flow.Flow
 
 
 private lateinit var viewModel: LocationViewModel
 val TAG = "LocationScreen"
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,9 +64,13 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
     viewModel = _viewModel
     val state = viewModel.mainScreenUIState.collectAsState()
 
-    val store = UserStore(context)
-    val tracking = store.getTrackingStatus.collectAsState(initial = false)
+    val store =  UserStore(context.applicationContext)
+    val trackingFlow = remember {
+        store.getTrackingStatus
+    }
 
+    val tracking = trackingFlow.collectAsState(initial = false).value
+    Log.e(TAG, "onCreate de LocationScreen, STORE: $store, datastore: ${store.getDataStore()} Trcking: $tracking")
     // Create a permission launcher
     //TODO ver si hace falta algo visual que se hidrate desde el estado, para que lo dibuje de nuevo
     /*
@@ -79,7 +85,7 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
     setLifeCycleObserver()
 
     if(state.value.startForeground) {
-        startForegroundLocationService(LocalContext.current)
+        startForegroundLocationService(LocalContext.current, state.value.trackFrequencySecs)
     }
     Column(
         modifier = Modifier
@@ -88,8 +94,28 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(modifier = Modifier.padding(24.dp),
+        ) {
+            OutlinedTextField(
+                value = if (tracking){
+                    "Tracking"
+                } else {
+                    "Not Tracking"
+                },
+                readOnly = true,
+                onValueChange = {},
+                enabled = false,
+                modifier = Modifier.background(
+                    if (tracking){
+                        Color.Red
+                    } else {
+                        Color.Green
+                    }
+                ),
+            )
+        }
         Button(onClick = {
-            viewModel.allowStandardClicked()
+            stopForegroundLocationService(context)
             /*if (hasLocationAndPostPermissions(context)) {
                 subscribeToLocationUpdates(context, ::locationUpdate)
             } else {
@@ -98,49 +124,35 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
 
             }*/
         }) {
-            Text(text = "Allow Standard")
+            Text(text = "Stop Foreground tracking")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-            /*if (hasLocationAndPostPermissions(context)) {
-                startForegroundLocationService(context)
-            } else {
-                // Request location permission
-                //TODO pedir permsos,
-            // requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
-
-            }*/
             viewModel.allowForegroundClicked()
         }) {
-            Text(text = "Allow Foreground")
+            Text(text = "Start Foreground Tracking")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Log.e(TAG, "tracking vale: ${tracking.value}")
-        Log.e(TAG, "trackingLargo vale: ${state.value.trackFrequencySecs.toString()}")
-        Log.e(TAG, "enabled: ${!tracking.value}")
+
         Text(text = "Frequency",
             color = Color.Blue,
             fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
-            modifier = Modifier.height(16.dp),
             value = state.value.trackFrequencySecs.toString(),
             maxLines = 2,
+            //enabled = !tracking.value,
             textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             placeholder = {
-                Text(text = "update Frequency")
+                Text(text = "update Frequency, default 10")
             },
-           // value = viewModel.mainScreenUIState.collectAsState().value.trackFrequencySecs.toString(),
             onValueChange = { newFrequency ->
                 _viewModel.updatedfrequency(newFrequency)
             },
-            //TODO intentar sin esta opcion y validar en usecase
-            //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         //TODO check if this is ok
@@ -155,44 +167,54 @@ fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
     }
 }
 
-private fun startForegroundLocationService(context: Context) {
+private fun startForegroundLocationService(context: Context, frequency: String) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
+        Log.e(TAG, "about to send intent, frequency: $frequency")
+        intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency)
         context.startForegroundService(intent)
+        viewModel.foregroundStarted()
     }
-
 }
 
+private fun stopForegroundLocationService(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val stopIntent = Intent(context, ForegroundLocationService::class.java).setAction(ForegroundLocationService.ACTION_STOP_UPDATES)
+
+        context.stopService(stopIntent)
+    //TODO update view
+    viewModel.stopForeground()
+    }
+}
 @Composable
 fun setLifeCycleObserver() {
     //val context = LocalContext.current
     ComposableLifecycle { _, event ->
         when (event) {
             Lifecycle.Event.ON_CREATE -> {
-                Log.d(TAG, "onCreate")
+              //  Log.d(TAG, "onCreate")
             }
 
             Lifecycle.Event.ON_START -> {
-                Log.d(TAG, "On Start")
+              //  Log.d(TAG, "On Start")
             }
 
             Lifecycle.Event.ON_RESUME -> {
-                Log.d(TAG, "On Resume")
-                Log.e("Sebastrack", "onresume: state: ${viewModel.mainScreenUIState.value}")
+               // Log.d(TAG, "On Resume")
             }
 
             Lifecycle.Event.ON_PAUSE -> {
-                Log.d(TAG, "On Pause")
+               // Log.d(TAG, "On Pause")
             }
 
             Lifecycle.Event.ON_STOP -> {
-                Log.d(TAG, "On Stop")
+              //  Log.d(TAG, "On Stop")
 
                 //unSuscribeToLocationUpdates(context, ::locationUpdate)
             }
 
             Lifecycle.Event.ON_DESTROY -> {
-                Log.d(TAG, "On Destroy")
+             //   Log.d(TAG, "On Destroy")
             }
 
             else -> {}
@@ -230,7 +252,6 @@ private fun getCurrentLocation(context: Context, callback: (Double, Double) -> U
         return
     }
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            Log.e("Sebastrack", "getLastLocation success")
             if (location != null) {
                 val lat = location.latitude
                 val long = location.longitude
@@ -239,7 +260,6 @@ private fun getCurrentLocation(context: Context, callback: (Double, Double) -> U
         }.addOnFailureListener { exception ->
             // Handle location retrieval failure
             exception.printStackTrace()
-            Log.e("Sebastrack", "getLastLocation failure: $exception")
         }
 }
 

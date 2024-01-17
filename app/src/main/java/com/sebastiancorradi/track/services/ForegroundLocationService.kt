@@ -2,27 +2,22 @@ package com.sebastiancorradi.track.services
 
 
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_CANCEL_CURRENT
+import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.Binder
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.os.IBinder
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.data.EventType
 import com.sebastiancorradi.track.domain.CreateNotificationChannelUseCase
@@ -33,9 +28,9 @@ import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import com.sebastiancorradi.track.store.UserStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
@@ -53,6 +48,7 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class ForegroundLocationService : LifecycleService() {
+    //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
 
     @Inject
     lateinit var startTrackingUseCase: StartTrackingUseCase
@@ -65,6 +61,7 @@ class ForegroundLocationService : LifecycleService() {
     @Inject
     lateinit var createNotificationChannelUseCase: CreateNotificationChannelUseCase
 
+    val TAG = "ForegroundLocationService"
     private var _lastLocationFlow: MutableStateFlow<Location?>? = null
 
     private val deviceId by lazy{ (applicationContext as TrackApp).getDeviceID()}
@@ -73,40 +70,46 @@ class ForegroundLocationService : LifecycleService() {
     private var bindCount = 0
 
     private var started = false
-    private var isForeground = false
-    private lateinit var store : UserStore
+
+    @Inject
+    lateinit var store : UserStore
 
     private fun isBound() = bindCount > 0
 
     override fun onCreate() {
         super.onCreate()
-
-        store = UserStore(this)
-
+        //store = UserStore(applicationContext)
+        Log.e("LAQUEVA", "onCreate de foreground location service, STORE: $store, DATASTORE: ${store.getDataStore()},  trakcing flow = ${store.getTrackingStatus}")
         createNotificationChannelUseCase(this)
-
     }
 
     override fun stopService(name: Intent?): Boolean {
         return super.stopService(name)
     }
 
+    @SuppressLint("NewApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        Log.e("Sebastrack", "onStartCommand, action: ${intent?.getAction()}")
+
+        val frequencySecs = intent?.getLongExtra(FREQUENCY_SECS, 10L)?:10L
         if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
-            stopSelf();
-            Log.e("Sebastrack", "onStartCommand, stopped")
+            stopSelf()
             //locationRepository.stopLocationUpdates()
             stopTrackingUseCase()
             saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
-            lifecycleScope.launch {
-                store.saveTrackingStatus(false)
+            Log.e("status", "about to launch coroutine, to set tracking false")
+            val job = lifecycleScope.launch {
+                Log.e("status", "adentro de la corutina, antes")
+                runBlocking {  store.saveTrackingStatus(false) }
+                Log.e("status", "adentro de la corutina, despues")
             }
+            Log.e("status", "despues de lanzar corutina, job: $job")
+            Log.e("status", "about to launch coroutine, to set tracking false")
+            started = false
             return START_NOT_STICKY
         }
-        Log.e("Sebastrack", "onStartCommand, si ves esto al cerrar o detener... esta mal")
         //val notification = buildNotification(null)
+
         val notification = createNotificationUseCase(this)
         ServiceCompat.startForeground(
             /* service = */ this,
@@ -122,9 +125,11 @@ class ForegroundLocationService : LifecycleService() {
 
             started = true
             // Check if we should turn on location updates.
+            Log.e("status", "about to launch coroutine, to set tracking true, frequency: $frequencySecs")
             lifecycleScope.launch {
+                Log.e("status", "launched coroutine, to set tracking true, frequency: $frequencySecs")
                 store.saveTrackingStatus(true)
-                val flow = startTrackingUseCase(deviceId)
+                val flow = startTrackingUseCase(deviceId, frequencySecs * 1000)
                 updateLastLocationFlow(flow)
                 saveLocationUseCase.invoke(Location(null), deviceId, EventType.START)
             }
@@ -134,6 +139,7 @@ class ForegroundLocationService : LifecycleService() {
         return START_STICKY
     }
 
+    @SuppressLint("NewApi")
     private fun updateLastLocationFlow(flow: MutableStateFlow<Location?>?){
         //TODO ver qu eno se sobreescriba ni quede algun flow colgando en el eter cosmico
         _lastLocationFlow = flow
@@ -142,7 +148,6 @@ class ForegroundLocationService : LifecycleService() {
             // Trigger the flow and consume its elements using collect
             _lastLocationFlow?.collect { location ->
                 // Update DB, add latest location
-                Log.e("Sebastrack", "updating location from inside service, location: $location")
                 location?.let {
                     saveLocationUseCase.invoke(it, deviceId, EventType.TRACK)
                 }
@@ -188,8 +193,8 @@ class ForegroundLocationService : LifecycleService() {
     }
 
     companion object {
+        const val FREQUENCY_SECS =  "Frequency_millis"
         const val UNBIND_DELAY_MILLIS = 2000.toLong() // 2 seconds
-        const val NOTIFICATION_ID = 1
         const val NOTIFICATION_CHANNEL_ID = "LocationUpdates"
         const val ACTION_STOP_UPDATES = ".ACTION_STOP_UPDATES"
     }

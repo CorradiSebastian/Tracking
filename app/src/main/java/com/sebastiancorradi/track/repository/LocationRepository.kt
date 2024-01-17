@@ -29,9 +29,9 @@ class LocationRepository @Inject constructor(
     val lastLocation = _lastLocation.asStateFlow()
 
     @SuppressLint("MissingPermission") // Only called when holding location permission.
-    fun startLocationUpdates():MutableStateFlow<Location?> {
+    fun startLocationUpdates(frequencyMillis:Long):MutableStateFlow<Location?> {
 
-        val request  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
+        val request  = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, frequencyMillis)
             .setMinUpdateIntervalMillis(5000)
             .setMaxUpdateDelayMillis(15000)
             .build();
@@ -40,7 +40,6 @@ class LocationRepository @Inject constructor(
         // making a network request, etc.), either change to a background thread from the callback,
         // or create a HandlerThread and pass its Looper here instead.
         // See https://developer.android.com/reference/android/os/HandlerThread.
-        Log.e("Sebastrack", "usecase, starting, request: $request")
         fusedLocationProviderClient.requestLocationUpdates(
             request,
             callback,
@@ -58,7 +57,6 @@ class LocationRepository @Inject constructor(
 
     private inner class Callback : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-            Log.e("Sebastrack", "updating locations: ${result.lastLocation}")
             result.lastLocation?.let {
                 //saveLocation(it)
                 _lastLocation.value = result.lastLocation

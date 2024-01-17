@@ -1,6 +1,7 @@
 package com.sebastiancorradi.track.store
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -12,27 +13,24 @@ import kotlinx.coroutines.flow.map
 
 class UserStore(private val context: Context) {
     companion object {
-        private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("userToken")
-        private val USER_TOKEN_KEY = stringPreferencesKey("user_token")
+        private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
+        //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name ="userStore")
         private val TRACKING_KEY = booleanPreferencesKey("tracking")
     }
 
-    val getAccessToken: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[USER_TOKEN_KEY] ?: ""
-    }
-
-    suspend fun saveToken(token: String) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_TOKEN_KEY] = token
-        }
+    fun getDataStore():DataStore<Preferences>{
+        return context.dataStore
     }
 
     val getTrackingStatus: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        Log.e("UserStore", "getTracking status ${preferences[TRACKING_KEY]}, datastore: ${context.dataStore}, preferences: $preferences")
         preferences[TRACKING_KEY] ?: false
     }
 
     suspend fun saveTrackingStatus(tracking: Boolean) {
+        Log.e("UserStore", "a punto de setear el tracking a : $tracking")
         context.dataStore.edit { preferences ->
+            Log.e("UserStore", "adentro userstorr setting traking: $tracking, datastore: ${context.dataStore}, preferences: $preferences")
             preferences[TRACKING_KEY] = tracking
         }
     }

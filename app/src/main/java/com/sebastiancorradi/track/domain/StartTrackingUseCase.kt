@@ -13,7 +13,7 @@ class StartTrackingUseCase @Inject constructor(
     private val locationRepository: LocationRepository,
 ) {
 
-    operator fun invoke(deviceID: String): MutableStateFlow<Location?> {
-        return locationRepository.startLocationUpdates()
+    operator fun invoke(deviceID: String, frequencyMillis: Long): MutableStateFlow<Location?> {
+        return locationRepository.startLocationUpdates(frequencyMillis)
     }
 }

@@ -17,6 +17,7 @@ import com.sebastiancorradi.track.domain.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import com.sebastiancorradi.track.repository.DBConnection
 import com.sebastiancorradi.track.repository.LocationRepository
+import com.sebastiancorradi.track.store.UserStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +27,7 @@ import javax.inject.Singleton
 
 @HiltAndroidApp
 class TrackApp: Application() {
-
+    //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
     override fun onCreate() {
         super.onCreate()
         // Required initialization logic here!
@@ -93,6 +94,8 @@ class TrackApp: Application() {
         @Provides
         fun provideCreateNotificationChannelUseCase() = CreateNotificationChannelUseCase()
 
+        @Provides
+        fun provideDataStore(application: Application) = UserStore(application)
 
     }
 }

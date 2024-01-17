@@ -141,7 +141,6 @@ fun requestPermissions(context: Context, requestPermissionLauncher: ManagedActiv
 }*/
 
 fun unSuscribeToLocationUpdates(context: Context, callback: (Location) -> Unit){
-    Log.d("sebastrack", "unsubscribing.")
     val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     val removeTask = fusedLocationProviderClient.removeLocationUpdates(callback)
     removeTask.addOnCompleteListener { task ->
