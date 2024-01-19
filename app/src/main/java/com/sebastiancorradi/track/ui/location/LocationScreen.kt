@@ -1,13 +1,12 @@
 package com.sebastiancorradi.track.ui.location
 
 import android.Manifest
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
-import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
@@ -24,16 +28,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.datastore.core.DataStore
@@ -43,14 +48,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.TrackApp
+import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
-import javax.inject.Inject
+import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 
 
 private lateinit var viewModel: LocationViewModel
@@ -60,13 +74,13 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-//fun LocationScreen(_viewModel: LocationViewModel = viewModel()) {
-fun LocationScreen(_viewModel: LocationViewModel = hiltViewModel()) {
+fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _viewModel: LocationViewModel = hiltViewModel()) {
 
     val context = LocalContext.current
 
+    //es para que lo pueran referenciar desde afuera
     viewModel = _viewModel
-    val state = viewModel.mainScreenUIState.collectAsState()
+    val state = _viewModel.mainScreenUIState.collectAsState()
 
     val store =  UserStore(context.applicationContext)
 
@@ -84,7 +98,7 @@ fun LocationScreen(_viewModel: LocationViewModel = hiltViewModel()) {
         permissionDenied()
     }*/
     //TODO cambiar la logica, tener un flag en el estado para saber si tengo que pedir el permiso
-    RequestPermissions3(state.value.requestLocationPermission, state.value.requestNotificationPermission)
+    RequestPermissions(state.value.requestLocationPermission, state.value.requestNotificationPermission)
 
     setLifeCycleObserver()
 
@@ -134,7 +148,7 @@ fun LocationScreen(_viewModel: LocationViewModel = hiltViewModel()) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
 
-            viewModel.allowForegroundClicked()
+            _viewModel.allowForegroundClicked()
         }) {
             Text(text = "Start Foreground Tracking")
         }
@@ -167,7 +181,46 @@ fun LocationScreen(_viewModel: LocationViewModel = hiltViewModel()) {
         }) {
             Text(text = "getLocationsFLow")
         }
+        Spacer(modifier = Modifier.height(16.dp))
 
+        //TODO check if this is ok
+        Button(onClick = {
+
+            onNavigateToList()
+        }) {
+            Text(text = "go to list")
+        }
+
+        //------------------------------------------------
+       // bottomBar = {
+            BottomNavigation {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+                items.forEach { screen ->
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
+                        label = { Text(stringResource(screen.resourceId)) },
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            }
+     //   }
+        //------------------------------------------------
     }
 }
 
@@ -282,7 +335,7 @@ fun ComposableLifecycle(
 }
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RequestPermissions3(requestLocation: Boolean = false, requestNotification: Boolean = false) {
+fun RequestPermissions(requestLocation: Boolean = false, requestNotification: Boolean = false) {
     val permissions = mutableListOf<String>()
     if (requestLocation){
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -321,8 +374,18 @@ fun RequestPermissions3(requestLocation: Boolean = false, requestNotification: B
 
 }
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun SplashScreenPreview(){
     LocationScreen()
+}*/
+
+sealed class Screen(val route: String, @StringRes val resourceId: Int) {
+    object Location : Screen(AppScreens.LocationScreen.route, R.string.location)
+    object LocationList : Screen(AppScreens.LocationListScreen.route, R.string.locationList)
 }
+
+val items = listOf(
+    Screen.Location,
+    Screen.LocationList,
+)

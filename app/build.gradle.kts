@@ -131,4 +131,10 @@ dependencies {
 
     // Preferences DataStore (SharedPreferences like APIs)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    //Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+
+    //Bottom navigation baR?
+    implementation("androidx.compose.material:material:1.5.4")
 }

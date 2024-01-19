@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Track</string>
+
+    <!--  Location Card-->
+    <string name="date">Fecha: </string>
+    <string name="lat">Lat: </string>
+    <string name="lon">Lon: </string>
+    <string name="details">Detalles</string>
+    <string name="event_type_label">Evento: </string>
+    <string name="event_type_start">Start</string>
+    <string name="event_type_stop">Stop</string>
+    <string name="event_type_track">Tarck</string>
+
+    <string name="start_tracking">Comenzar Seguimiento</string>
+    <string name="stop_tracking">Detener Seguimiento</string>
+
+    <!-- Screens -->
+    <string name="location">Ubicacion</string>
+    <string name="locationList">Lista de Ubicaciones</string>
+
+    <!-- Date Format -->
+    <string name="date_time_format">dd/MM/yyyy HH:mm</string>
+
+</resources>

@@ -17,7 +17,7 @@ class SaveLocationUseCase @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     operator fun invoke(location: Location?, deviceId:String, eventType: EventType) {
-        val time = location?.time?: System.currentTimeMillis()
-        dbConnection.addLocation(DBLocation(location?.latitude, location?.longitude, time, deviceId, eventType))
+        val time = System.currentTimeMillis()
+        dbConnection.addLocation(DBLocation(location?.latitude?:0.0, location?.longitude?:0.0, time, deviceId, eventType))
     }
 }

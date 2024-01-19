@@ -10,6 +10,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.sebastiancorradi.track.data.DBLocation
+import com.sebastiancorradi.track.data.LocationData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -29,22 +30,31 @@ class DBConnection() {
         }
     }
 
-    fun getLocationFlow(deviceId: String): Flow<List<DBLocation>> {
+    fun getLocationFlow(deviceId: String): Flow<List<LocationData>> {
         Log.e(TAG, "getLocationFLow, deviceId: $deviceId")
-        val flow = callbackFlow<List<DBLocation>> {
+        val flow = callbackFlow<List<LocationData>> {
             val listener = databaseReference.addValueEventListener(object  : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
 
                     try {
-                        val map = snapshot.getValue(true) as HashMap<*, *>
-                        val list = map.get("locations") as HashMap<*, *>
-                        val deviceItem = list.get(deviceId) as HashMap<String, DBLocation>
-                        val deviceItemList = deviceItem.values
-
-                        trySend(deviceItemList.toList())
+                        val map = snapshot.getValue(true) as HashMap<String, *>
+                        val list = map.get("locations") as HashMap<String, HashMap<String, HashMap<String, String>>>
+                        val deviceItem = list.get(deviceId) as HashMap<String, HashMap<String, String>>
+                        val deviceItemList = deviceItem.values.toList()
+                        Log.e(TAG,  "----------------------------------")
+                        val locations = deviceItemList.map {
+                            Log.e(TAG,  "antes del map, it: ${it}")
+                            Log.e(TAG,  "it.class: ${it::class.java}")
+                            Log.e(TAG,  "it.getvalue lat class: ${it.getValue("lat")::class.java}")
+                            Log.e(TAG,  "it.get value lat: ${it.getValue("lat")}")
+                            LocationData(deviceId, DBLocation(it))
+                        }
+                            //LocationData(deviceId, it as DBLocation) }
+                        Log.e(TAG,  "despues del map")
+                        trySend(locations.toList())
                     } catch (e: Exception){
                         Log.e(TAG,  "error, e: $e")
-                        trySend(emptyList<DBLocation>())
+                        trySend(emptyList<LocationData>())
                     }
                 }
 

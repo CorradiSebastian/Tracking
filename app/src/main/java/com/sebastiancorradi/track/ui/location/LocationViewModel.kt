@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.data.DBLocation
+import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
@@ -55,7 +56,7 @@ class LocationViewModel @Inject constructor(
     private val _mainScreenUIState = MutableStateFlow(MainScreenUIState())
     val mainScreenUIState: StateFlow<MainScreenUIState> = _mainScreenUIState.asStateFlow()
 
-    private lateinit var _dbLocationsFlow: Flow<List<DBLocation>>
+    private lateinit var _dbLocationsFlow: Flow<List<LocationData>>
     //val dbLocationsFlow: StateFlow<MainScreenUIState> = _dbLocationsFlow.asStateFlow()
     fun permissionDenied(){
         //TODO update state with the error and act in consequence
