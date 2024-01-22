@@ -10,7 +10,7 @@ class PermissionRequestUseCase {
         if (permissions.getValue(ACCESS_FINE_LOCATION) &&
             permissions.getValue(POST_NOTIFICATIONS)
             ){
-            return state.copy(startForeground = true)
+            return state.copy(startForeground = false)
         }
         return state
     }

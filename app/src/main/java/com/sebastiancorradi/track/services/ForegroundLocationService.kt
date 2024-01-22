@@ -86,6 +86,11 @@ class ForegroundLocationService : LifecycleService() {
         return super.stopService(name)
     }
 
+    override fun onDestroy() {
+        stopTrackingUseCase(deviceId)
+        super.onDestroy()
+    }
+
     @SuppressLint("NewApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -94,11 +99,9 @@ class ForegroundLocationService : LifecycleService() {
         if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
             stopSelf()
             //locationRepository.stopLocationUpdates()
-            stopTrackingUseCase()
-            saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
-            val job = lifecycleScope.launch {
-                runBlocking {  store.saveTrackingStatus(false) }
-            }
+
+            //saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
+
             started = false
             return START_NOT_STICKY
         }

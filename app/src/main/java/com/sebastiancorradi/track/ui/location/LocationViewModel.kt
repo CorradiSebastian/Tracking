@@ -1,22 +1,13 @@
 package com.sebastiancorradi.track.ui.location
 
-import android.content.Context
-import android.util.Log
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import com.sebastiancorradi.track.TrackApp
-import com.sebastiancorradi.track.data.DBLocation
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import com.sebastiancorradi.track.domain.UpdateFrequencyUseCase
-import com.sebastiancorradi.track.repository.DBConnection
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.store.UserStore
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
@@ -26,14 +17,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
 ): ViewModel() {
-
+    val TAG = "LocationViewModel"
     @Inject
     lateinit var allowTrackingUseCase: AllowTrackingClicked
 
@@ -68,6 +58,7 @@ class LocationViewModel @Inject constructor(
 
     fun allowForegroundClicked(){
         _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
+        //_mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = false)
     }
 
     fun locationsFlowRequested(deviceId:String){
@@ -112,14 +103,14 @@ class LocationViewModel @Inject constructor(
 
     fun foregroundStarted() {
         //TODO hacer Usecase
-        _mainScreenUIState.value = _mainScreenUIState.value.copy(startForeground = false)
+        _mainScreenUIState.value = _mainScreenUIState.value.copy( startForeground = false)
     }
 
-    fun stopForeground() {
-        stopTrackingUseCase()
-        runBlocking {
+    fun stopForeground(deviceId: String) {
+        _mainScreenUIState.value = _mainScreenUIState.value.copy(startForeground = false)
+        /*runBlocking {
             store.saveTrackingStatus(false)
-        }
+        }*/
     }
 
 }

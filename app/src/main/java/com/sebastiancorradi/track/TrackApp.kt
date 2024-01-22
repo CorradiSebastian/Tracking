@@ -3,6 +3,7 @@ package com.sebastiancorradi.track
 import android.app.Application
 import android.provider.Settings
 import android.widget.Toast
+import com.firebase.ui.auth.data.model.User
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -74,8 +75,8 @@ class TrackApp: Application() {
         ) = StartTrackingUseCase(locationRepository)
 
         @Provides
-        fun provideStopTrackingUseCase(locationRepository: LocationRepository,
-        ) = StopTrackingUseCase(locationRepository)
+        fun provideStopTrackingUseCase(locationRepository: LocationRepository, saveLocationUseCase: SaveLocationUseCase, dataStore: UserStore
+        ) = StopTrackingUseCase(locationRepository, saveLocationUseCase, dataStore)
 
         @Provides
         fun provideDBConnection() = DBConnection()

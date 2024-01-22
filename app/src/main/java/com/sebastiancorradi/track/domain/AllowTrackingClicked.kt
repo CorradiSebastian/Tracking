@@ -4,7 +4,7 @@ import android.util.Log
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 
 class AllowTrackingClicked {
-    operator fun invoke(mainScreenUIState: MainScreenUIState, startForeground:Boolean): MainScreenUIState {
+    operator fun invoke(mainScreenUIState: MainScreenUIState, startForeground:Boolean = false): MainScreenUIState {
         val requestLocationPermission = !mainScreenUIState.locationPermissionGranted
         val requestNotificationPermission  = !mainScreenUIState.notificationPermissionGranted
         var newState = mainScreenUIState.copy(

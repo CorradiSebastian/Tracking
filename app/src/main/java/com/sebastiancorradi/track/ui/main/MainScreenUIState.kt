@@ -15,5 +15,4 @@ data class MainScreenUIState(
 
     var trackFrequencySecs:String = "10",
 ) {
-
 }

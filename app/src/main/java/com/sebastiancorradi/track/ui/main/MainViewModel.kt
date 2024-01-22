@@ -1,11 +1,6 @@
 package com.sebastiancorradi.track.ui.main
 
-import android.content.ServiceConnection
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.sebastiancorradi.track.domain.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import dagger.hilt.android.lifecycle.HiltViewModel

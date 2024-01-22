@@ -42,16 +42,10 @@ fun LocationListScreen(viewModel: LocationListViewModel = hiltViewModel()) {
     }
     val tracking = trackingFlow.collectAsState(initial = false).value
 
-    Log.e(TAG, "state.value.locations: ${state.value.locations}")
     val locats = state.value.locations
     val locs = remember { listOf(LocationData("user1", DBLocation(1.0, 2.0, 234234L, "deviceID")),
         LocationData("user1", DBLocation(1.0, 2.0, 234234L, "deviceID"))) }
 
-    Log.e (TAG, "locats: $locats")
-    Log.e (TAG, "locs: $locs")
-
-    Log.e (TAG, "locats.class: ${locats::class.java}")
-    Log.e (TAG, "locs.class: ${locs::class.java}")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -66,11 +60,8 @@ fun LocationListScreen(viewModel: LocationListViewModel = hiltViewModel()) {
             items(
                 locats
             ) {
-                //Log.e(TAG, "state.value.locations: ${state.value.locations}")
-                //Log.e(TAG, "it : ${it}")
                 //TODO reemplasar UserID con el valor q va
                 LocationDetailCard(it)
-                //LocationDetailCard(LocationData(it.user, it.ubicacion))
             }
         }
         Button(onClick = {

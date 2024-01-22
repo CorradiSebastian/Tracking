@@ -41,16 +41,10 @@ class DBConnection() {
                         val list = map.get("locations") as HashMap<String, HashMap<String, HashMap<String, String>>>
                         val deviceItem = list.get(deviceId) as HashMap<String, HashMap<String, String>>
                         val deviceItemList = deviceItem.values.toList()
-                        Log.e(TAG,  "----------------------------------")
                         val locations = deviceItemList.map {
-                            Log.e(TAG,  "antes del map, it: ${it}")
-                            Log.e(TAG,  "it.class: ${it::class.java}")
-                            Log.e(TAG,  "it.getvalue lat class: ${it.getValue("lat")::class.java}")
-                            Log.e(TAG,  "it.get value lat: ${it.getValue("lat")}")
                             LocationData(deviceId, DBLocation(it))
                         }
                             //LocationData(deviceId, it as DBLocation) }
-                        Log.e(TAG,  "despues del map")
                         trySend(locations.toList())
                     } catch (e: Exception){
                         Log.e(TAG,  "error, e: $e")

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,12 +51,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
@@ -64,7 +60,6 @@ import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
-import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 
 
 private lateinit var viewModel: LocationViewModel
@@ -103,7 +98,7 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
     setLifeCycleObserver()
 
     if(state.value.startForeground) {
-        startForegroundLocationService(LocalContext.current, state.value.trackFrequencySecs)
+            startForegroundLocationService(context, state.value.trackFrequencySecs)
     }
     Column(
         modifier = Modifier
@@ -147,7 +142,7 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-
+            Log.e(TAG, "button for start foreground location, statevale: ${state}")
             _viewModel.allowForegroundClicked()
         }) {
             Text(text = "Start Foreground Tracking")
@@ -206,9 +201,11 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
                                 // Pop up to the start destination of the graph to
                                 // avoid building up a large stack of destinations
                                 // on the back stack as users select items
-                                popUpTo(navController.graph.findStartDestination().id) {
+
+                                /*popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
-                                }
+                                }*/
+
                                 // Avoid multiple copies of the same destination when
                                 // reselecting the same item
                                 launchSingleTop = true
@@ -225,11 +222,13 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
 }
 
 private fun startForegroundLocationService(context: Context, frequency: String) {
+    Log.e(TAG, "start foreground location, statevale: ${viewModel.mainScreenUIState.value}")
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+        viewModel.foregroundStarted()
         val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
         intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency)
         context.startForegroundService(intent)
-        viewModel.foregroundStarted()
     }
 }
 
@@ -239,32 +238,37 @@ private fun stopForegroundLocationService(context: Context) {
 
         context.stopService(stopIntent)
     //TODO update view
-    viewModel.stopForeground()
+        val deviceId = (context.applicationContext as TrackApp).getDeviceID()
+    viewModel.stopForeground(deviceId)
     }
 }
 @Composable
 fun setLifeCycleObserver() {
     //val context = LocalContext.current
+
+    //Log.d(TAG, "onCreate, startForeground vale: $startForeground")
+    /*val startForeground = viewModel.mainScreenUIState.collectAsState().value.startForeground
     ComposableLifecycle { _, event ->
         when (event) {
             Lifecycle.Event.ON_CREATE -> {
-              //  Log.d(TAG, "onCreate")
+                Log.e(TAG, "onCreate, startForeground vale: $startForeground")
             }
 
             Lifecycle.Event.ON_START -> {
-              //  Log.d(TAG, "On Start")
+                Log.e(TAG, "On Start")
             }
 
             Lifecycle.Event.ON_RESUME -> {
-               // Log.d(TAG, "On Resume")
+                Log.e(TAG, "On Resume, startForeground vale: $startForeground")
             }
 
             Lifecycle.Event.ON_PAUSE -> {
-               // Log.d(TAG, "On Pause")
+                Log.e(TAG, "On Pause, startForeground vale: $startForeground")
             }
 
             Lifecycle.Event.ON_STOP -> {
               //  Log.d(TAG, "On Stop")
+                Log.e(TAG, "On STOP, startForeground vale: $startForeground")
 
                 //unSuscribeToLocationUpdates(context, ::locationUpdate)
             }
@@ -275,7 +279,7 @@ fun setLifeCycleObserver() {
 
             else -> {}
         }
-    }
+    }*/
 }
 
 fun locationUpdate(location: Location) {
