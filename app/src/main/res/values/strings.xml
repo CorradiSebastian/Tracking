@@ -19,6 +19,6 @@
     <string name="locationList">Location List</string>
 
     <!-- Date Format -->
-    <string name="date_time_format">yyyy.MM.dd HH:mm</string>
+    <string name="date_time_format">yyyy.MM.dd HH:mm:ss</string>
 
 </resources>

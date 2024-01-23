@@ -137,4 +137,7 @@ dependencies {
 
     //Bottom navigation baR?
     implementation("androidx.compose.material:material:1.5.4")
+
+    //constraint layout
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 }

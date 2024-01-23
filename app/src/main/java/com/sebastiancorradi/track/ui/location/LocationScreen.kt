@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -69,7 +71,11 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _viewModel: LocationViewModel = hiltViewModel()) {
+fun LocationScreen(
+    navController: NavController,
+    onNavigateToList: () -> Unit,
+    _viewModel: LocationViewModel = hiltViewModel()
+) {
 
     val context = LocalContext.current
 
@@ -77,7 +83,7 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
     viewModel = _viewModel
     val state = _viewModel.mainScreenUIState.collectAsState()
 
-    val store =  UserStore(context.applicationContext)
+    val store = UserStore(context.applicationContext)
 
     val trackingFlow = remember {
         store.getTrackingStatus
@@ -93,24 +99,29 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
         permissionDenied()
     }*/
     //TODO cambiar la logica, tener un flag en el estado para saber si tengo que pedir el permiso
-    RequestPermissions(state.value.requestLocationPermission, state.value.requestNotificationPermission)
+    RequestPermissions(
+        state.value.requestLocationPermission, state.value.requestNotificationPermission
+    )
 
     setLifeCycleObserver()
 
-    if(state.value.startForeground) {
-            startForegroundLocationService(context, state.value.trackFrequencySecs)
+    if (state.value.startForeground) {
+        startForegroundLocationService(context, state.value.trackFrequencySecs)
     }
-    Column(
+    ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(12.dp),
     ) {
-        Row(modifier = Modifier.padding(24.dp),
-        ) {
+        val (row1, button, sp1, button2, sp2, text, sp3, outLText, sp4, button3, sp5, bottomBar) = createRefs()
+
+        Row(modifier = Modifier.constrainAs(row1) {
+            top.linkTo(parent.top, margin = 5.dp)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }) {
             OutlinedTextField(
-                value = if (tracking){
+                value = if (tracking) {
                     "Tracking"
                 } else {
                     "Not Tracking"
@@ -118,18 +129,23 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
                 readOnly = true,
                 onValueChange = {},
                 enabled = false,
-                modifier = Modifier.background(
-                    if (tracking){
-                        Color.Red
-                    } else {
-                        Color.Green
-                    }
-                ),
+                modifier = Modifier
+                    .background(
+                        if (tracking) {
+                            Color.Red
+                        } else {
+                            Color.Green
+                        }
+                    )
+                    .fillMaxWidth(),
             )
         }
-        Button(onClick = {
-            stopForegroundLocationService(context)
-            /*if (hasLocationAndPostPermissions(context)) {
+        Button(modifier = Modifier.constrainAs(button) {
+            top.linkTo(row1.bottom, margin = 5.dp)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }, onClick = {
+            stopForegroundLocationService(context)/*if (hasLocationAndPostPermissions(context)) {
                 subscribeToLocationUpdates(context, ::locationUpdate)
             } else {
                 // Request location permission
@@ -141,7 +157,11 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
+        Button(modifier = Modifier.constrainAs(button2) {
+            top.linkTo(button.bottom, margin = 5.dp)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }, onClick = {
             Log.e(TAG, "button for start foreground location, statevale: ${state}")
             _viewModel.allowForegroundClicked()
         }) {
@@ -149,11 +169,18 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Frequency",
-            color = Color.Blue,
-            fontWeight = FontWeight.Bold)
+        Text(modifier = Modifier.constrainAs(text) {
+            top.linkTo(button2.bottom, margin = 5.dp)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }, text = "Frequency", color = Color.Blue, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
+            modifier = Modifier.constrainAs(outLText) {
+                top.linkTo(text.bottom, margin = 5.dp)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            },
             value = state.value.trackFrequencySecs.toString(),
             maxLines = 2,
             //enabled = !tracking.value,
@@ -169,54 +196,55 @@ fun LocationScreen(navController: NavController, onNavigateToList: () -> Unit, _
         Spacer(modifier = Modifier.height(16.dp))
 
         //TODO check if this is ok
-        Button(onClick = {
-
+        Button(modifier = Modifier.constrainAs(button3) {
+            top.linkTo(outLText.bottom, margin = 5.dp)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }, onClick = {
             val deviceId = (context.applicationContext as TrackApp).getDeviceID()
-            _viewModel.locationsFlowRequested(deviceId)
+            _viewModel.deleteLocationsRequested(deviceId)
         }) {
-            Text(text = "getLocationsFLow")
+            Text(text = "delete locations")
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        //TODO check if this is ok
-        Button(onClick = {
-
-            onNavigateToList()
-        }) {
-            Text(text = "go to list")
-        }
-
-        //------------------------------------------------
-       // bottomBar = {
-            BottomNavigation {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                items.forEach { screen ->
-                    BottomNavigationItem(
-                        icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
-                        label = { Text(stringResource(screen.resourceId)) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
-
-                                /*popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }*/
-
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
-                        }
+        BottomNavigation(
+            modifier = Modifier.constrainAs(bottomBar) {
+                bottom.linkTo(parent.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            },
+        ) {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
+            items.forEach { screen ->
+                BottomNavigationItem(icon = {
+                    Icon(
+                        Icons.Filled.Favorite, contentDescription = null
                     )
-                }
+                },
+                    label = { Text(stringResource(screen.resourceId)) },
+                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+
+                            /*popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }*/
+
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
             }
-     //   }
+        }
+        //   }
         //------------------------------------------------
     }
 }
@@ -234,14 +262,17 @@ private fun startForegroundLocationService(context: Context, frequency: String) 
 
 private fun stopForegroundLocationService(context: Context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val stopIntent = Intent(context, ForegroundLocationService::class.java).setAction(ForegroundLocationService.ACTION_STOP_UPDATES)
+        val stopIntent = Intent(context, ForegroundLocationService::class.java).setAction(
+            ForegroundLocationService.ACTION_STOP_UPDATES
+        )
 
         context.stopService(stopIntent)
-    //TODO update view
+        //TODO update view
         val deviceId = (context.applicationContext as TrackApp).getDeviceID()
-    viewModel.stopForeground(deviceId)
+        viewModel.stopForeground(deviceId)
     }
 }
+
 @Composable
 fun setLifeCycleObserver() {
     //val context = LocalContext.current
@@ -309,15 +340,15 @@ private fun getCurrentLocation(context: Context, callback: (Double, Double) -> U
         return
     }
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                val lat = location.latitude
-                val long = location.longitude
-                callback(lat, long)
-            }
-        }.addOnFailureListener { exception ->
-            // Handle location retrieval failure
-            exception.printStackTrace()
+        if (location != null) {
+            val lat = location.latitude
+            val long = location.longitude
+            callback(lat, long)
         }
+    }.addOnFailureListener { exception ->
+        // Handle location retrieval failure
+        exception.printStackTrace()
+    }
 }
 
 @Composable
@@ -337,30 +368,30 @@ fun ComposableLifecycle(
         }
     }
 }
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RequestPermissions(requestLocation: Boolean = false, requestNotification: Boolean = false) {
     val permissions = mutableListOf<String>()
-    if (requestLocation){
+    if (requestLocation) {
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
     }
-    if (requestNotification){
+    if (requestNotification) {
         permissions.add(Manifest.permission.POST_NOTIFICATIONS)
     }
-    if (permissions.size == 0)
-        return
+    if (permissions.size == 0) return
 
     val lifeCycleOwner = LocalLifecycleOwner.current
-    val permissionState = rememberMultiplePermissionsState(permissions = permissions){
+    val permissionState = rememberMultiplePermissionsState(permissions = permissions) {
         // tiene un mapa <String, boolean
         viewModel.permissionsGranted(it)
 
     }
 
-    DisposableEffect(key1= lifeCycleOwner) {
-        val observer = LifecycleEventObserver{ source, event ->
-            when (event){
+    DisposableEffect(key1 = lifeCycleOwner) {
+        val observer = LifecycleEventObserver { source, event ->
+            when (event) {
                 Lifecycle.Event.ON_START -> {
                     permissionState.launchMultiplePermissionRequest()
                 }

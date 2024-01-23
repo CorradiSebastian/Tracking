@@ -1,9 +1,11 @@
 package com.sebastiancorradi.track.ui.location
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
+import com.sebastiancorradi.track.domain.DeleteLocationsUseCase
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class Sport { HIKE, RUN, TOURING_BICYCLE, E_TOURING_BICYCLE }
 @HiltViewModel
 class LocationViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
@@ -38,6 +41,9 @@ class LocationViewModel @Inject constructor(
 
     @Inject
     lateinit var updateFrequencyUseCase: UpdateFrequencyUseCase
+
+    @Inject
+    lateinit var deleteLocationsUseCase: DeleteLocationsUseCase
 
     @Inject
     lateinit var store : UserStore
@@ -63,6 +69,16 @@ class LocationViewModel @Inject constructor(
 
     fun locationsFlowRequested(deviceId:String){
         getDBLocationsFlow(deviceId)
+
+
+        data class Summary(val sport: Sport, val distance: Int)
+        val sportStats = listOf(Summary(Sport.HIKE, 92),
+            Summary(Sport.RUN, 77),
+            Summary(Sport.TOURING_BICYCLE, 322),
+            Summary(Sport.E_TOURING_BICYCLE, 656))
+
+        val top = sportStats.sortedBy { it.distance }.last()
+
     }
     fun getDBLocationsFlow(deviceId: String){
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
@@ -111,6 +127,11 @@ class LocationViewModel @Inject constructor(
         /*runBlocking {
             store.saveTrackingStatus(false)
         }*/
+    }
+
+    @SuppressLint("NewApi")
+    fun deleteLocationsRequested(deviceId: String) {
+        deleteLocationsUseCase(deviceId)
     }
 
 }

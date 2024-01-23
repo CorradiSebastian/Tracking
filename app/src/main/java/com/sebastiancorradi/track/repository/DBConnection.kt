@@ -45,7 +45,7 @@ class DBConnection() {
                             LocationData(deviceId, DBLocation(it))
                         }
                             //LocationData(deviceId, it as DBLocation) }
-                        trySend(locations.toList())
+                        trySend(locations.toList().sortedBy { (it.ubicacion?.date as Number).toLong() })
                     } catch (e: Exception){
                         Log.e(TAG,  "error, e: $e")
                         trySend(emptyList<LocationData>())
@@ -60,6 +60,15 @@ class DBConnection() {
             awaitClose{databaseReference.removeEventListener(listener)}
         }
         return flow
+    }
+
+    fun deleteLocations(deviceId: String) {
+        Log.e(TAG, "addLocation, about to delete locations")
+        val key = databaseReference.push().key
+        if (key != null){
+            databaseReference.child("locations").child(deviceId).root.setValue(null)
+        }
+
     }
 
 }
