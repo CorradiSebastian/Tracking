@@ -16,7 +16,8 @@
 
     <!-- Screens -->
     <string name="location">Location</string>
-    <string name="locationList">Location List</string>
+    <string name="location_list">Location List</string>
+    <string name="map_list">Map</string>
 
     <!-- Date Format -->
     <string name="date_time_format">yyyy.MM.dd HH:mm:ss</string>

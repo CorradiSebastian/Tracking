@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sebastiancorradi.track.ui.location.LocationScreen
+import com.sebastiancorradi.track.ui.map.MapScreen
 import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 import com.sebastiancorradi.track.ui.main.MainScreen
 import com.sebastiancorradi.track.ui.splash.SplashScreen
@@ -28,6 +29,8 @@ fun AppNavigation(){
         composable(AppScreens.LocationListScreen.route){
             LocationListScreen()
         }
-
+        composable(AppScreens.MapScreen.route){
+            MapScreen()
+        }
     }
 }
