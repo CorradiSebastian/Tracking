@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.android.application")
@@ -23,6 +25,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        val mapsKey: String = gradleLocalProperties(rootDir).getProperty("MAPS_API_KEY")
+        manifestPlaceholders["MAPS_API_KEY"] =  mapsKey
     }
 
     buildTypes {
