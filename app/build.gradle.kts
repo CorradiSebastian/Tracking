@@ -1,4 +1,5 @@
 plugins {
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
@@ -140,4 +141,8 @@ dependencies {
 
     //constraint layout
     implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    //maps
+    implementation ("com.google.maps.android:maps-compose:2.11.4")
+    implementation ("com.google.android.gms:play-services-maps:18.1.0")
 }
