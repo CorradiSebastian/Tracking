@@ -17,6 +17,7 @@ import com.sebastiancorradi.track.domain.PermissionRequestUseCase
 import com.sebastiancorradi.track.domain.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.domain.UpdateFocusOnLastPositionUseCase
 import com.sebastiancorradi.track.repository.DBConnection
 import com.sebastiancorradi.track.repository.LocationRepository
 import com.sebastiancorradi.track.store.UserStore
@@ -101,6 +102,9 @@ class TrackApp: Application() {
 
         @Provides
         fun provideDeleteLocationsUseCase(dbConnection: DBConnection) = DeleteLocationsUseCase(dbConnection)
+
+        @Provides
+        fun provideUpdateFocusOnLastPositionUseCase() = UpdateFocusOnLastPositionUseCase()
 
     }
 }

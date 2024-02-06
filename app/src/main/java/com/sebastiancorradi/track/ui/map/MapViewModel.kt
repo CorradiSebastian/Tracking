@@ -1,14 +1,13 @@
-package com.sebastiancorradi.track.ui.locationlist
+package com.sebastiancorradi.track.ui.map
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sebastiancorradi.track.data.DBLocation
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.data.LocationListUIState
+import com.sebastiancorradi.track.data.MapUIState
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
+import com.sebastiancorradi.track.domain.UpdateFocusOnLastPositionUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
-import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,27 +17,26 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LocationListViewModel @Inject constructor(
-    //TODO este parametro no se esta usando
-    private val serviceConnection: ForegroundLocationServiceConnection
-): ViewModel() {
-
+class MapViewModel @Inject constructor(): ViewModel() {
     @Inject
     lateinit var getDBLocationsUseCase: GetDBLocationsUseCase
 
-    private val _locationListUIState = MutableStateFlow(LocationListUIState())
-    val locationListUIState: StateFlow<LocationListUIState> = _locationListUIState.asStateFlow()
-
-    private val _mainScreenUIState = MutableStateFlow(MainScreenUIState())
-    val mainScreenUIState: StateFlow<MainScreenUIState> = _mainScreenUIState.asStateFlow()
+    @Inject
+    lateinit var updateFocusOnLastPositionUseCase: UpdateFocusOnLastPositionUseCase
 
     private lateinit var _dbLocationsFlow: Flow<List<LocationData>>
+
+    /*private val _locationListUIState = MutableStateFlow(LocationListUIState())
+    val locationListUIState: StateFlow<LocationListUIState> = _locationListUIState.asStateFlow()*/
+
+    private val _mapUIState = MutableStateFlow(MapUIState())
+    val mapUIState: StateFlow<MapUIState> = _mapUIState.asStateFlow()
 
     fun getDBLocationsFlow(deviceId: String): Flow<List<LocationData>> {
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
         viewModelScope.launch {
             _dbLocationsFlow.collect { locations ->
-                _locationListUIState.value = locationListUIState.value.copy(locations = locations)// Update DB, add latest location
+                _mapUIState.value = mapUIState.value.copy(locations = locations)// Update DB, add latest location
             }
         }
         return _dbLocationsFlow
@@ -48,12 +46,7 @@ class LocationListViewModel @Inject constructor(
         return getDBLocationsFlow(deviceId)
     }
 
-    //fun getDBLocationsFlow(deviceId: String){
-    //        _dbLocationsFlow = getDBLocationsUseCase(deviceId)
-    //        viewModelScope.launch {
-    //            _dbLocationsFlow.collect { locations ->
-    //                // Update DB, add latest location
-    //            }
-    //        }
-    //    }
+    fun focusOnLastPositionUpdated(autoFocus:Boolean) {
+        _mapUIState.value = updateFocusOnLastPositionUseCase(_mapUIState.value, autoFocus)
+    }
 }

@@ -3,7 +3,6 @@ package com.sebastiancorradi.track.repository
 import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Looper
-import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -25,8 +24,8 @@ class LocationRepository @Inject constructor(
     private val _isReceivingUpdates = MutableStateFlow(false)
     val isReceivingLocationUpdates = _isReceivingUpdates.asStateFlow()
 
-    private val _lastLocation = MutableStateFlow<Location?>(null)
-    val lastLocation = _lastLocation.asStateFlow()
+    private val _lastLocationFlow = MutableStateFlow<Location?>(null)
+    val lastLocation = _lastLocationFlow.asStateFlow()
 
     @SuppressLint("MissingPermission") // Only called when holding location permission.
     fun startLocationUpdates(frequencyMillis:Long):MutableStateFlow<Location?> {
@@ -46,20 +45,24 @@ class LocationRepository @Inject constructor(
             Looper.getMainLooper()
         )
         _isReceivingUpdates.value = true
-        return _lastLocation
+        return _lastLocationFlow
     }
 
-    fun stopLocationUpdates() {
+    @SuppressLint("MissingPermission")
+    fun stopLocationUpdates():Location? {
+        //val lastLocation = fusedLocationProviderClient.lastLocation.result
         fusedLocationProviderClient.removeLocationUpdates(callback)
         _isReceivingUpdates.value = false
-        _lastLocation.value = null
+        val lastLocation = _lastLocationFlow.value
+        _lastLocationFlow.value = null
+        return lastLocation
     }
 
     private inner class Callback : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             result.lastLocation?.let {
                 //saveLocation(it)
-                _lastLocation.value = result.lastLocation
+                _lastLocationFlow.value = result.lastLocation
             }
         }
     }

@@ -62,6 +62,7 @@ import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
+import com.sebastiancorradi.track.ui.bottomnavigation.items
 
 
 private lateinit var viewModel: LocationViewModel
@@ -74,6 +75,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 fun LocationScreen(
     navController: NavController,
     onNavigateToList: () -> Unit,
+    onNavigateToMap: () -> Unit,
     _viewModel: LocationViewModel = hiltViewModel()
 ) {
 
@@ -208,42 +210,7 @@ fun LocationScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        BottomNavigation(
-            modifier = Modifier.constrainAs(bottomBar) {
-                bottom.linkTo(parent.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },
-        ) {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination
-            items.forEach { screen ->
-                BottomNavigationItem(icon = {
-                    Icon(
-                        Icons.Filled.Favorite, contentDescription = null
-                    )
-                },
-                    label = { Text(stringResource(screen.resourceId)) },
-                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                    onClick = {
-                        navController.navigate(screen.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
 
-                            /*popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }*/
-
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
-                        }
-                    })
-            }
-        }
         //   }
         //------------------------------------------------
     }
@@ -415,14 +382,5 @@ fun SplashScreenPreview(){
     LocationScreen()
 }*/
 
-sealed class Screen(val route: String, @StringRes val resourceId: Int) {
-    object Location : Screen(AppScreens.LocationScreen.route, R.string.location)
-    object LocationList : Screen(AppScreens.LocationListScreen.route, R.string.location_list)
-    object MapScreen : Screen(AppScreens.MapScreen.route, R.string.map_list)
-}
 
-val items = listOf(
-    Screen.Location,
-    Screen.LocationList,
-    Screen.MapScreen
-)
+

@@ -17,8 +17,8 @@ class StopTrackingUseCase  @Inject constructor(
 
     @SuppressLint("NewApi")
     operator fun invoke(deviceId: String) {
-        locationRepository.stopLocationUpdates()
-        saveLocationUseCase(null, deviceId, EventType.STOP)
+        val lastLocation = locationRepository.stopLocationUpdates()
+        saveLocationUseCase(lastLocation, deviceId, EventType.STOP)
         runBlocking {
             store.saveTrackingStatus(false)
         }
