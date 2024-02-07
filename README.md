@@ -26,11 +26,11 @@ All with reactive programming (kotlin flows), MVVM, Compose and firebase.
 
 **ARCHITECTURE**
 
--CLEAN architecture : Clean architecture is a software design philosophy that separates the elements of a design into ring levels. An important goal of clean architecture is to provide developers with a way to organize code in such a way that it encapsulates the business logic but keeps it separate from the delivery mechanism. Also fits with MVVM, Single Responsibility in Use Cases (Business Logic layer in CLEAN)
+- CLEAN architecture : Clean architecture is a software design philosophy that separates the elements of a design into ring levels. An important goal of clean architecture is to provide developers with a way to organize code in such a way that it encapsulates the business logic but keeps it separate from the delivery mechanism. Also fits with MVVM, Single Responsibility in Use Cases (Business Logic layer in CLEAN)
 
-- MVVM is used in this app, just a standar implementation interacting with coroutines and fragments, fragments are sharing viewmodels with Activities, also SingleLiveEvent (pattern?) is used.
+- MVVM is used in this app, just a standard implementation interacting with coroutines and composables interacting with viewmodels.
 
--FIREBASE RTDM: Firebase Realtime Database, a cloud-hosted NoSQL database that lets you store and sync data between your users in realtime. This library was added in order to avoid the development of a backend. And to allow to set fleet data (in the future)
+- FIREBASE RTDM: Firebase Realtime Database, a cloud-hosted NoSQL database that lets you store and sync data between your users in realtime. This library was added in order to avoid the development of a backend. And to allow to set fleet data (in the future)
 
 
 **TO BE ADDED**
