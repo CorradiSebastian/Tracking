@@ -100,19 +100,6 @@ fun ShowMap(locations: List<LocationData>){
         mutableStateOf(MapProperties(mapType = MapType.SATELLITE))
     }
 
-    /*var cameraPositionState = if (locations.lastIndex >= 0) {
-        var lastLocation: LocationData? = locations.get(locations.lastIndex)
-        val lastPos = LatLng(
-            lastLocation?.ubicacion?.lat ?: 0.0, lastLocation?.ubicacion?.long ?: 0.0
-        )
-        var cameraPosition = CameraPosition.fromLatLngZoom(lastPos, 10f)
-        rememberCameraPositionState{cameraPosition}
-    } else {
-        var cameraPosition = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 10f)
-        CameraPositionState(cameraPosition)
-    }
-    */
-    //Box(Modifier.fillMaxSize()) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             properties = properties,
@@ -138,15 +125,11 @@ fun ShowMap(locations: List<LocationData>){
                         lastLocation?.ubicacion?.lat ?: 0.0, lastLocation?.ubicacion?.long ?: 0.0
                     )
                     var cameraPosition = CameraPosition.fromLatLngZoom(lastPos, 10f)
-                    //rememberCameraPositionState{cameraPosition}
                     CameraPositionState(cameraPosition)
                 } else {
                     var cameraPosition = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 10f)
-                    //rememberCameraPositionState{cameraPosition}
                     CameraPositionState(cameraPosition)
                 }
-
-                //cameraPositionState.move(CameraUpdateFactory.zoomIn())
                 currentCameraPositionState.move(
                     CameraUpdateFactory.newCameraPosition(
                         lastCameraPosition.position
@@ -157,27 +140,30 @@ fun ShowMap(locations: List<LocationData>){
         }
         Log.e(TAG, "focus value: ${state.focusOnLastPosition}")
         Column {
-            /*SwitchWithText(label = "Zoom enabled", callback = {
-                uiSettings = uiSettings.copy(zoomControlsEnabled = it)
-            })*/
+            SwitchWithText(label = "Zoom enabled", callback = { checked ->
+                uiSettings = uiSettings.copy(zoomControlsEnabled = checked,
+                                                scrollGesturesEnabled = checked,
+                                                zoomGesturesEnabled = checked,
+                                                rotationGesturesEnabled = checked,)
+                viewModel.zoomEnabled(checked, )
+            }, viewModel.mapUIState.collectAsState().value.zoomEnabled)
             Spacer(modifier = Modifier.height(5.dp))
             SwitchWithText(label = "Center on last position", callback = { checked ->
                 //centerOnLastPosition = checked
                 viewModel.focusOnLastPositionUpdated(checked)
-            })
+            }, viewModel.mapUIState.collectAsState().value.focusOnLastPosition)
         }
    // }
 }
 
 @Composable
-fun BasicSwitch(callback: (checked: Boolean) -> Unit) {
+fun BasicSwitch(callback: (checked: Boolean) -> Unit, checked: Boolean) {
     //var checked by remember { mutableStateOf(true) }
-    var checked = viewModel.mapUIState.collectAsState().value.focusOnLastPosition
+    //var checked = viewModel.mapUIState.collectAsState().value.focusOnLastPosition
     Switch(
         checked = checked,
         onCheckedChange = {
-            checked = it
-            callback(checked)
+            callback(it)
         },
         thumbContent = if (checked) {
             {
@@ -194,7 +180,7 @@ fun BasicSwitch(callback: (checked: Boolean) -> Unit) {
 }
 
 @Composable
-fun SwitchWithText(label: String, callback: (checked: Boolean) -> Unit) {
+fun SwitchWithText(label: String, callback: (checked: Boolean) -> Unit, checked: Boolean) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -205,7 +191,7 @@ fun SwitchWithText(label: String, callback: (checked: Boolean) -> Unit) {
         ) {
             Text(text =  label, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(5.dp))
-            BasicSwitch(callback)
+            BasicSwitch(callback, checked)
         }
     }
 }

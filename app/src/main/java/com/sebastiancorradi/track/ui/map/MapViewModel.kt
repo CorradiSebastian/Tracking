@@ -3,11 +3,10 @@ package com.sebastiancorradi.track.ui.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.data.LocationData
-import com.sebastiancorradi.track.data.LocationListUIState
 import com.sebastiancorradi.track.data.MapUIState
 import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.UpdateFocusOnLastPositionUseCase
-import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
+import com.sebastiancorradi.track.domain.ZoomEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +22,8 @@ class MapViewModel @Inject constructor(): ViewModel() {
 
     @Inject
     lateinit var updateFocusOnLastPositionUseCase: UpdateFocusOnLastPositionUseCase
+    @Inject
+    lateinit var zoomEnabledUseCase: ZoomEnabledUseCase
 
     private lateinit var _dbLocationsFlow: Flow<List<LocationData>>
 
@@ -48,5 +49,9 @@ class MapViewModel @Inject constructor(): ViewModel() {
 
     fun focusOnLastPositionUpdated(autoFocus:Boolean) {
         _mapUIState.value = updateFocusOnLastPositionUseCase(_mapUIState.value, autoFocus)
+    }
+
+    fun zoomEnabled(zoomEnabled:Boolean) {
+        _mapUIState.value = zoomEnabledUseCase(_mapUIState.value, zoomEnabled)
     }
 }
