@@ -1,5 +1,6 @@
 # Traking
 ### tracking app, created in kotlin
+**STILL ON DEVELOPMENT**
 
 This app was created to show some basic implementations of android concepts, libraries and architectures described below.
 
