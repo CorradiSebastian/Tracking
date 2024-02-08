@@ -39,39 +39,5 @@ class TrackApp: Application() {
         val deviceId: String = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         return deviceId
     }
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object AppModule {
 
-        @Provides
-        @Singleton
-        fun provideGoogleApiAvailability() = GoogleApiAvailability.getInstance()
-
-        @Provides
-        @Singleton
-        fun provideFusedLocationProviderClient(
-            application: Application
-        ) = LocationServices.getFusedLocationProviderClient(application)
-
-        @Singleton
-        @Provides
-        fun provideLocationRepository(
-            fusedLocationProviderClient: FusedLocationProviderClient,
-        ) = LocationRepository(fusedLocationProviderClient)
-
-
-        @Provides
-        fun provideAllowTrackingClicked(
-        ) = AllowTrackingClicked()
-
-
-        @Provides
-        fun provideDataStore(application: Application) = UserStore(application)
-
-        @Provides
-        fun provideUpdateFocusOnLastPositionUseCase() = UpdateFocusOnLastPositionUseCase()
-        @Provides
-        fun provideZoomEnabledUseCase() = ZoomEnabledUseCase()
-
-    }
 }
