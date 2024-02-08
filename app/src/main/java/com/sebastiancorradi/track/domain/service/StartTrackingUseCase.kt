@@ -1,4 +1,4 @@
-package com.sebastiancorradi.track.domain
+package com.sebastiancorradi.track.domain.service
 
 import android.location.Location
 import android.util.Log

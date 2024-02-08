@@ -1,4 +1,4 @@
-package com.sebastiancorradi.track.domain
+package com.sebastiancorradi.track.domain.db
 
 import android.util.Log
 import com.sebastiancorradi.track.data.DBLocation

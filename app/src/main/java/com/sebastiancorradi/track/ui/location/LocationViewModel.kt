@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.domain.AllowTrackingClicked
-import com.sebastiancorradi.track.domain.DeleteLocationsUseCase
-import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
+import com.sebastiancorradi.track.domain.db.DeleteLocationsUseCase
+import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.PermissionRequestUseCase
-import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.domain.service.StopTrackingUseCase
 import com.sebastiancorradi.track.domain.UpdateFrequencyUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.store.UserStore
@@ -112,21 +112,17 @@ class LocationViewModel @Inject constructor(
         _mainScreenUIState.value = permissionRequestUseCase(_mainScreenUIState.value, permissions)
     }
 
-    fun updatedfrequency(newFrequency: String) {
-            val updatedFrequency = updateFrequencyUseCase(_mainScreenUIState.value.trackFrequencySecs, newFrequency)
-            _mainScreenUIState.value = _mainScreenUIState.value.copy(trackFrequencySecs = updatedFrequency)
+    fun updatedfrequency(newFrequency: String)
+    {
+        _mainScreenUIState.value = updateFrequencyUseCase(_mainScreenUIState.value, newFrequency)
     }
 
     fun foregroundStarted() {
-        //TODO hacer Usecase
         _mainScreenUIState.value = _mainScreenUIState.value.copy( startForeground = false)
     }
 
     fun stopForeground(deviceId: String) {
         _mainScreenUIState.value = _mainScreenUIState.value.copy(startForeground = false)
-        /*runBlocking {
-            store.saveTrackingStatus(false)
-        }*/
     }
 
     @SuppressLint("NewApi")

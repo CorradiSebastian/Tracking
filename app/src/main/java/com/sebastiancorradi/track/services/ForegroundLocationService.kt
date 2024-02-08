@@ -4,33 +4,27 @@ package com.sebastiancorradi.track.services
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.ServiceCompat
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.data.EventType
-import com.sebastiancorradi.track.domain.CreateNotificationChannelUseCase
-import com.sebastiancorradi.track.domain.CreateNotificationUseCase
-import com.sebastiancorradi.track.domain.SaveLocationUseCase
-import com.sebastiancorradi.track.domain.StartTrackingUseCase
-import com.sebastiancorradi.track.domain.StopTrackingUseCase
+import com.sebastiancorradi.track.domain.service.CreateNotificationChannelUseCase
+import com.sebastiancorradi.track.domain.service.CreateNotificationUseCase
+import com.sebastiancorradi.track.domain.db.SaveLocationUseCase
+import com.sebastiancorradi.track.domain.service.StartTrackingUseCase
+import com.sebastiancorradi.track.domain.service.StopTrackingUseCase
 import com.sebastiancorradi.track.store.UserStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 

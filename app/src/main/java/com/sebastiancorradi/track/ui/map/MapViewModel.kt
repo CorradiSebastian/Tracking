@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.data.MapUIState
-import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
-import com.sebastiancorradi.track.domain.UpdateFocusOnLastPositionUseCase
-import com.sebastiancorradi.track.domain.ZoomEnabledUseCase
+import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
+import com.sebastiancorradi.track.domain.map.UpdateFocusOnLastPositionUseCase
+import com.sebastiancorradi.track.domain.map.ZoomEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

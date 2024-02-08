@@ -1,12 +1,10 @@
 package com.sebastiancorradi.track.ui.locationlist
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sebastiancorradi.track.data.DBLocation
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.data.LocationListUIState
-import com.sebastiancorradi.track.domain.GetDBLocationsUseCase
+import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel

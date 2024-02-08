@@ -1,8 +1,8 @@
-package com.sebastiancorradi.track.domain
+package com.sebastiancorradi.track.domain.service
 
 import android.annotation.SuppressLint
-import android.util.Log
 import com.sebastiancorradi.track.data.EventType
+import com.sebastiancorradi.track.domain.db.SaveLocationUseCase
 import com.sebastiancorradi.track.repository.LocationRepository
 import com.sebastiancorradi.track.store.UserStore
 import kotlinx.coroutines.runBlocking

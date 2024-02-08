@@ -1,4 +1,4 @@
-package com.sebastiancorradi.track.domain
+package com.sebastiancorradi.track.domain.map
 
 import com.sebastiancorradi.track.data.MapUIState
 

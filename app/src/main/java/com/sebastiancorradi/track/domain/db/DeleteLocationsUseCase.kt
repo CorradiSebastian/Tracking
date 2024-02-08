@@ -1,4 +1,4 @@
-package com.sebastiancorradi.track.domain
+package com.sebastiancorradi.track.domain.db
 
 import android.location.Location
 import android.os.Build
