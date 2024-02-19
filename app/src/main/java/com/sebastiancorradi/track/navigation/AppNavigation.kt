@@ -84,30 +84,5 @@ fun AppNavigation(){
 
         }
     }
-    /*
-    NavHost(
-        navController = navController,
-        startDestination = AppScreens.SplashScreen.route,
-        ){
-        composable(AppScreens.SplashScreen.route){
-            SplashScreen(navController)
-        }
-        composable(AppScreens.MainScreen.route){
-            MainScreen(navController)
-        }
-        composable(AppScreens.LocationScreen.route){
-            LocationScreen(navController,
-                onNavigateToList = { navController.navigate(AppScreens.LocationListScreen.route) },
-                onNavigateToMap = { navController.navigate(AppScreens.MapScreen.route) },
-                )
 
-        }
-        //onNavigateToFriends = { navController.navigate("friendsList") },
-        composable(AppScreens.LocationListScreen.route){
-            LocationListScreen(navController,)
-        }
-        composable(AppScreens.MapScreen.route){
-            MapScreen()
-        }
-    }*/
 }

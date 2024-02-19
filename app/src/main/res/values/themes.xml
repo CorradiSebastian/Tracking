@@ -2,4 +2,5 @@
 <resources>
 
     <style name="Theme.Track" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-->Theme.AppCompat<-->
 </resources>

@@ -22,4 +22,23 @@
     <!-- Date Format -->
     <string name="date_time_format">yyyy.MM.dd HH:mm:ss</string>
 
+    <!-- main screen -->
+    <string name="welcome">welcome</string>
+    <string name="welcome_text_1">Esta aplicacion fue hecha para mostrar implementaciones basicas de varios conceptos y librerias. Entre ellas:</string>
+    <string name="welcome_text_2">EL codigo esta publicado en Github y la aplicacion disponible en el playstore</string>
+    <string name="welcome_text_3">Se ofrece libremente sin ningun tipo de garantia.</string>
+
+    <string-array
+        name="concepts">
+        <item>CLEAN arch.</item>
+        <item>MVVM.</item>
+        <item>Firebase RTDM.</item>
+        <item>Foreground services.</item>
+        <item>Location Request.</item>
+        <item>Jetpack Compose.</item>
+        <item>Google maps.</item>
+    </string-array>
+
+    <!-->  <-->
+
 </resources>

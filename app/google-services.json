@@ -13,7 +13,20 @@
           "package_name": "com.sebastiancorradi.track"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "584116774311-ilsaagnlhd8ugfu38qh9p6rbnj9g53qd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sebastiancorradi.track",
+            "certificate_hash": "f4453e5e7711cf91a4dd4bce782ecafb82da334a"
+          }
+        },
+        {
+          "client_id": "584116774311-q0tbgbikb2cbtliasvfqqcs666e7gmov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCtfGato5zyByIi7xvhn27ur59BAXSuFHk"
@@ -21,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584116774311-q0tbgbikb2cbtliasvfqqcs666e7gmov.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -115,10 +115,12 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Firebase UI Library
     //TODO probably I will not need this
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
+
 
     //Firebase RTDM
     // Import the BoM for the Firebase platform
@@ -149,4 +151,5 @@ dependencies {
     //maps
     implementation ("com.google.maps.android:maps-compose:2.11.4")
     implementation ("com.google.android.gms:play-services-maps:18.1.0")
+
 }

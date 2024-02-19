@@ -22,4 +22,9 @@
     <!-- Date Format -->
     <string name="date_time_format">dd/MM/yyyy HH:mm:ss</string>
 
+    <!-- main screen -->
+    <string name="welcome">Bienvenido</string>
+    <string name="welcome_text_1">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
+    <string name="welcome_text_2">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
+    <string name="welcome_text_3">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
 </resources>
