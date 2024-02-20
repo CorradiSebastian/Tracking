@@ -2,13 +2,10 @@ package com.sebastiancorradi.track.ui.map
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -47,12 +43,9 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.currentCameraPositionState
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.data.MapUIState
-import com.sebastiancorradi.track.ui.locationlist.LocationListViewModel
 
 val TAG = "MapScreen"
 private lateinit var viewModel: MapViewModel

@@ -33,18 +33,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.sebastiancorradi.track.MainActivity
 import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.ui.theme.TrackTheme
 
 val TAG = "MainScreen"
-var _navController: NavController? = null
 @Composable
-fun MainScreen(navController: NavController?,
-               onResumeClicked: () -> Unit,
+fun MainScreen(onResumeClicked: () -> Unit,
                mainViewModel: MainViewModel = viewModel(),){
-    _navController = navController
 
     val mainScreenUIState by mainViewModel.mainScreenUIState.collectAsState()
     if (mainScreenUIState.resumeClicked){
@@ -157,7 +153,7 @@ fun signIn(context: Context) {// Create and launch sign-in intent
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(null, {})
+    MainScreen( {})
     /*TrackTheme {
         MainContent(MainScreenUIState())
     }*/

@@ -1,6 +1,5 @@
 package com.sebastiancorradi.track.navigation
 
-import android.provider.ContactsContract
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -22,10 +21,9 @@ import androidx.navigation.compose.rememberNavController
 import com.sebastiancorradi.track.ui.bottomnavigation.Screen
 import com.sebastiancorradi.track.ui.bottomnavigation.items
 import com.sebastiancorradi.track.ui.location.LocationScreen
-import com.sebastiancorradi.track.ui.map.MapScreen
 import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 import com.sebastiancorradi.track.ui.main.MainScreen
-import com.sebastiancorradi.track.ui.main._navController
+import com.sebastiancorradi.track.ui.map.MapScreen
 import com.sebastiancorradi.track.ui.splash.SplashScreen
 
 @Composable
@@ -66,20 +64,18 @@ fun AppNavigation(){
                 SplashScreen(navController)
             }
             composable(AppScreens.MainScreen.route){
-                MainScreen(navController,
-                           onResumeClicked = {navController.navigate(AppScreens.LocationScreen.route)}
+                MainScreen(onResumeClicked = {navController.navigate(AppScreens.LocationScreen.route)}
                 )
             }
             composable(AppScreens.LocationScreen.route){
-                LocationScreen(navController,
-                    onNavigateToList = { navController.navigate(AppScreens.LocationListScreen.route) },
-                    onNavigateToMap = { navController.navigate(AppScreens.MapScreen.route) },
+                LocationScreen(
+                    //onNavigateToList = { navController.navigate(AppScreens.LocationListScreen.route) },
+                    //onNavigateToMap = { navController.navigate(AppScreens.MapScreen.route) },
                 )
 
             }
-            //onNavigateToFriends = { navController.navigate("friendsList") },
             composable(AppScreens.LocationListScreen.route){
-                LocationListScreen(navController,)
+                LocationListScreen()
             }
             composable(AppScreens.MapScreen.route){
                 MapScreen()
