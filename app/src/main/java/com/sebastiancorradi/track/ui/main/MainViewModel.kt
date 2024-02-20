@@ -1,6 +1,8 @@
 package com.sebastiancorradi.track.ui.main
 
 import androidx.lifecycle.ViewModel
+import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
+import com.sebastiancorradi.track.domain.mainscreen.ResumeClickedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +16,10 @@ class MainViewModel @Inject constructor(): ViewModel() {
 class MainViewModel @Inject constructor(
     private val serviceConnection: ForegroundLocationServiceConnection
 ): ViewModel(), ServiceConnection by serviceConnection {*/
-    //private var _mainScreenUIState = mutableStateOf(MainScreenUIState())
+
+    @Inject
+    lateinit var resumeClickedUseCase: ResumeClickedUseCase
+
     private val _mainScreenUIState = MutableStateFlow(MainScreenUIState())
     val mainScreenUIState: StateFlow<MainScreenUIState> = _mainScreenUIState.asStateFlow()
     fun startTrackingClicked(){
@@ -24,5 +29,12 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun resumeClicked(){
+
+        _mainScreenUIState.update {
+            //TODO pasar a usecase
+                currentState -> currentState.copy(tracking = !currentState.tracking)
+        }
+    }
 
 }

@@ -11,6 +11,7 @@ data class MainScreenUIState(
     var startForeground: Boolean = false,
     var startStandard:Boolean = false,
     var foregroundRunning:Boolean = false,
+    var resumeClicked:Boolean = false,
     //var locations:List<LocationData>? = null
 
     var trackFrequencySecs:String = "10",

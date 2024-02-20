@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.navigation.compose.rememberNavController
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
@@ -13,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.sebastiancorradi.track.navigation.AppNavigation
+import com.sebastiancorradi.track.navigation.AppScreens
 import com.sebastiancorradi.track.ui.location.LocationViewModel
 import com.sebastiancorradi.track.ui.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,18 +36,15 @@ class MainActivity: ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.e(TAG, "onresume ONRESUME onresume")
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         auth = Firebase.auth
         Log.e(TAG, "oncreate, auth: $auth")
         Log.e(TAG, "oncreate, auth.currentUser: ${auth.currentUser}")
         if (auth.currentUser == null) {
             //LAUNCH THE LOGIN SCREEN
             setContent {
+                val navController = rememberNavController()
                 //_navController!!.navigate(AppScreens.LocationScreen.route)
-                MainScreen(navController = null)
+                MainScreen(navController, {navController.navigate(AppScreens.LocationScreen.route)})
                 //AppNavigation()
             }
             // Not signed in, launch the Sign In activity
@@ -57,6 +56,12 @@ class MainActivity: ComponentActivity() {
                 AppNavigation()
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+
     }
 
     // Choose authentication providers
@@ -82,7 +87,7 @@ class MainActivity: ComponentActivity() {
         if (result?.resultCode == RESULT_OK) {
             // Successfully signed in
             val user = FirebaseAuth.getInstance().currentUser
-            vie
+
             auth.currentUser
             // ...
         } else {

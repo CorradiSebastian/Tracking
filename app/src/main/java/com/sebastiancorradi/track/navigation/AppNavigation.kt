@@ -25,6 +25,7 @@ import com.sebastiancorradi.track.ui.location.LocationScreen
 import com.sebastiancorradi.track.ui.map.MapScreen
 import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 import com.sebastiancorradi.track.ui.main.MainScreen
+import com.sebastiancorradi.track.ui.main._navController
 import com.sebastiancorradi.track.ui.splash.SplashScreen
 
 @Composable
@@ -65,7 +66,9 @@ fun AppNavigation(){
                 SplashScreen(navController)
             }
             composable(AppScreens.MainScreen.route){
-                MainScreen(navController)
+                MainScreen(navController,
+                           onResumeClicked = {navController.navigate(AppScreens.LocationScreen.route)}
+                )
             }
             composable(AppScreens.LocationScreen.route){
                 LocationScreen(navController,
