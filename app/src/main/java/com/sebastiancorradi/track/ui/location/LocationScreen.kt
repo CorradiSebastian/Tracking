@@ -202,7 +202,11 @@ private fun startForegroundLocationService(context: Context, frequency: String) 
 
         viewModel.foregroundStarted()
         val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
-        intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency)
+        try {
+            intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency.toLong())
+        } catch (e: Exception){
+            intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, 10L)
+        }
         context.startForegroundService(intent)
     }
 }
@@ -323,6 +327,7 @@ fun RequestPermissions(requestLocation: Boolean = false, requestNotification: Bo
     if (requestLocation) {
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        permissions.add(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
     }
     if (requestNotification) {
         permissions.add(Manifest.permission.POST_NOTIFICATIONS)
@@ -356,11 +361,7 @@ fun RequestPermissions(requestLocation: Boolean = false, requestNotification: Bo
 
 }
 
-/*@Preview(showBackground = true)
-@Composable
-fun SplashScreenPreview(){
-    LocationScreen()
-}*/
+
 
 
 

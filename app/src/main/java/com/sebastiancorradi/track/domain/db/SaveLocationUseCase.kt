@@ -21,6 +21,7 @@ class SaveLocationUseCase @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     operator fun invoke(location: Location?, deviceId:String, eventType: EventType) {
+        Log.e(TAG, "SaveLocationUsecasae, location: $location")
         val time = System.currentTimeMillis()
         val notValidLocation = invalidLocation(location)
         if (notValidLocation && eventType == EventType.START){

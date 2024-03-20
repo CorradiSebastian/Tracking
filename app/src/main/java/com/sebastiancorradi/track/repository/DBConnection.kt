@@ -1,14 +1,11 @@
 package com.sebastiancorradi.track.repository
 
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.ktx.Firebase
 import com.sebastiancorradi.track.data.DBLocation
 import com.sebastiancorradi.track.data.LocationData
 import kotlinx.coroutines.channels.awaitClose
@@ -19,7 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class DBConnection() {
     private val TAG = "DBConnection"
-    private val auth: FirebaseAuth by lazy { Firebase.auth}
+    //private val auth: FirebaseAuth by lazy { Firebase.auth}
     private val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().reference.child("trackApp")
 
     fun addLocation(dbLocation: DBLocation){
@@ -39,13 +36,21 @@ class DBConnection() {
                     try {
                         val map = snapshot.getValue(true) as HashMap<String, *>
                         val list = map.get("locations") as HashMap<String, HashMap<String, HashMap<String, String>>>
-                        val deviceItem = list.get(deviceId) as HashMap<String, HashMap<String, String>>
-                        val deviceItemList = deviceItem.values.toList()
-                        val locations = deviceItemList.map {
-                            LocationData(deviceId, DBLocation(it))
-                        }
+                        list.get(deviceId)?.let {
+                            val deviceItem = list.get(deviceId) as HashMap<String, HashMap<String, String>>
+                            val deviceItemList = deviceItem.values.toList()
+                            val locations = deviceItemList.map {
+                                LocationData(deviceId, DBLocation(it))
+                            }
+                            Log.e(TAG, "about to sent locations: $locations")
                             //LocationData(deviceId, it as DBLocation) }
-                        trySend(locations.toList().sortedBy { (it.ubicacion?.date as Number).toLong() })
+                            trySend(
+                                locations.toList()
+                                    .sortedBy { (it.ubicacion?.date as Number).toLong() })
+                        }?: run {
+                            Log.e(TAG, "locations retrived were null")
+                            trySend(emptyList<LocationData>())
+                        }
                     } catch (e: Exception){
                         Log.e(TAG,  "error, e: $e")
                         trySend(emptyList<LocationData>())

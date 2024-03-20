@@ -3,7 +3,9 @@ package com.sebastiancorradi.track.repository
 import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Looper
+import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -39,11 +41,13 @@ class LocationRepository @Inject constructor(
         // making a network request, etc.), either change to a background thread from the callback,
         // or create a HandlerThread and pass its Looper here instead.
         // See https://developer.android.com/reference/android/os/HandlerThread.
-        fusedLocationProviderClient.requestLocationUpdates(
+        val task = fusedLocationProviderClient.requestLocationUpdates(
             request,
             callback,
             Looper.getMainLooper()
         )
+        Log.e("LocationRepo", "LocationRepository, task: $task")
+        Log.e("LocationRepo", "LocationRepository, task.issuccesfill: ${task.isSuccessful}")
         _isReceivingUpdates.value = true
         return _lastLocationFlow
     }
@@ -60,10 +64,18 @@ class LocationRepository @Inject constructor(
 
     private inner class Callback : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
+            Log.e("Sebas", "callback onLocationResult: $result")
+            Log.e("Sebas", "callback onLocationResult: ${result.locations.toString()}")
             result.lastLocation?.let {
                 //saveLocation(it)
                 _lastLocationFlow.value = result.lastLocation
             }
+        }
+
+        override fun onLocationAvailability(p0: LocationAvailability) {
+            super.onLocationAvailability(p0)
+            Log.e("LocationRepository", "onLocatoinAvailability: $p0 ")
+            Log.e("LocationRepository", "onLocatoinAvailability is location avialable: ${p0.isLocationAvailable}")
         }
     }
 

@@ -18,8 +18,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.sebastiancorradi.track.ui.bottomnavigation.Screen
-import com.sebastiancorradi.track.ui.bottomnavigation.items
 import com.sebastiancorradi.track.ui.location.LocationScreen
 import com.sebastiancorradi.track.ui.locationlist.LocationListScreen
 import com.sebastiancorradi.track.ui.main.MainScreen
@@ -59,7 +57,7 @@ fun AppNavigation(){
             }
         }
     ) { innerPadding ->
-        NavHost(navController, startDestination = Screen.Location.route, Modifier.padding(innerPadding)) {
+        NavHost(navController, startDestination = AppScreens.LocationScreen.route, Modifier.padding(innerPadding)) {
             composable(AppScreens.SplashScreen.route){
                 SplashScreen(navController)
             }

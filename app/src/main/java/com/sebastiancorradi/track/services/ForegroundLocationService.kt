@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +23,7 @@ import com.sebastiancorradi.track.domain.service.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.service.StopTrackingUseCase
 import com.sebastiancorradi.track.store.UserStore
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -108,6 +110,7 @@ class ForegroundLocationService : LifecycleService() {
             /* notification = */ notification,
             /* foregroundServiceType = */
             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
+
         )
 
 
@@ -116,9 +119,10 @@ class ForegroundLocationService : LifecycleService() {
 
             started = true
             // Check if we should turn on location updates.
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 store.saveTrackingStatus(true)
                 val flow = startTrackingUseCase(deviceId, frequencySecs * 1000)
+                Log.e(TAG, "tracking status ipdated, flow updated, start trackingUseCase called")
                 updateLastLocationFlow(flow)
                 saveLocationUseCase.invoke(Location(null), deviceId, EventType.START)
             }
@@ -132,11 +136,13 @@ class ForegroundLocationService : LifecycleService() {
     private fun updateLastLocationFlow(flow: MutableStateFlow<Location?>?){
         //TODO ver qu eno se sobreescriba ni quede algun flow colgando en el eter cosmico
         _lastLocationFlow = flow
-        lifecycleScope.launch {
+        Log.e("Sebas", "inicializando flow")
+        lifecycleScope.launch(Dispatchers.IO) {
         //viewModelScope.launch {
             // Trigger the flow and consume its elements using collect
             _lastLocationFlow?.collect { location ->
                 // Update DB, add latest location
+                Log.e("Sebas", "colectando location: $location")
                 location?.let {
                     saveLocationUseCase.invoke(it, deviceId, EventType.TRACK)
                 }
@@ -162,7 +168,7 @@ class ForegroundLocationService : LifecycleService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         bindCount--
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             // UI client can unbind because it went through a configuration change, in which case it
             // will be recreated and bind again shortly. Wait a few seconds, and if still not bound,
             // manage our lifetime accordingly.

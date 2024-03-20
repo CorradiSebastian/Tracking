@@ -1,25 +1,48 @@
 package com.sebastiancorradi.track
 
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.IntentSender
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.Priority
+import com.google.android.gms.location.SettingsClient
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.sebastiancorradi.track.navigation.AppNavigation
 import com.sebastiancorradi.track.navigation.AppScreens
+import com.sebastiancorradi.track.services.ForegroundLocationService
+import com.sebastiancorradi.track.ui.components.LocationProviderChangedReceiver
 import com.sebastiancorradi.track.ui.location.LocationViewModel
 import com.sebastiancorradi.track.ui.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
+    private lateinit var locationRequestLauncher: ActivityResultLauncher<IntentSenderRequest>
     private val TAG = "MainActivity"
 
     private lateinit var auth: FirebaseAuth
@@ -34,16 +57,13 @@ class MainActivity: ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        Log.e(TAG, "onresume ONRESUME onresume")
         auth = Firebase.auth
-        Log.e(TAG, "oncreate, auth: $auth")
-        Log.e(TAG, "oncreate, auth.currentUser: ${auth.currentUser}")
         if (auth.currentUser == null) {
             //LAUNCH THE LOGIN SCREEN
             setContent {
                 val navController = rememberNavController()
                 //_navController!!.navigate(AppScreens.LocationScreen.route)
-                MainScreen(navController, {navController.navigate(AppScreens.LocationScreen.route)})
+                MainScreen({navController.navigate(AppScreens.LocationScreen.route)})
                 //AppNavigation()
             }
             // Not signed in, launch the Sign In activity
@@ -52,6 +72,14 @@ class MainActivity: ComponentActivity() {
             return
         } else {
             setContent {
+                //val isLocationEnabled by locationViewModel.isLocationEnabled.collectAsStateWithLifecycle()
+                val isLocationEnabled by locationViewModel.isLocationEnabled.collectAsState()
+                if (!isLocationEnabled) {
+                    //locationViewModel.enableLocationRequest(this@MapsActivity) {//Call this if GPS is OFF.
+                    enableLocationRequest(this) {//Call this if GPS is OFF.
+                        locationRequestLauncher.launch(it)//Launch it to show the prompt.
+                    }
+                }
                 AppNavigation()
             }
         }
@@ -60,6 +88,8 @@ class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        registerLocationRequestLauncher()
+        registerBroadcastReceiver()
 
     }
 
@@ -99,5 +129,90 @@ class MainActivity: ComponentActivity() {
         }
     }
 
+    fun enableLocationRequest(
+        context: Context,
+        makeRequest: (intentSenderRequest: IntentSenderRequest) -> Unit//Lambda to call when locations are off.
+    ) {
+        val locationRequest = LocationRequest.Builder(//Create a location request object
+            Priority.PRIORITY_HIGH_ACCURACY,//Self explanatory
+            10000//Interval -> shorter the interval more frequent location updates
+        ).build()
 
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+
+        val client: SettingsClient = LocationServices.getSettingsClient(context)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())//Checksettings with building a request
+        task.addOnSuccessListener { locationSettingsResponse ->
+            Log.d(
+                "Location",
+                "enableLocationRequest: LocationService Already Enabled"
+            )
+        }
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(exception.resolution).build()//Create the request prompt
+                    makeRequest(intentSenderRequest)//Make the request from UI
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
+    }
+
+    private fun registerLocationRequestLauncher() {
+        locationRequestLauncher =//We will create a global var
+            registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { activityResult ->
+                if (activityResult.resultCode == RESULT_OK)
+                    locationViewModel.updateCurrentLocationData()//If the user clicks OK to turn on location
+                else {
+                    if (!locationViewModel.isLocationEnabled.value) {//If the user cancels, Still make a check and then exit the activity
+                        Toast.makeText(
+                            this,
+                            "Location access is mandatory to use this feature!!",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                        closeApp()
+                    }
+                }
+            }
+    }
+
+    private fun closeApp() {
+        val deviceId = (this.applicationContext as TrackApp).getDeviceID()
+        locationViewModel.closeApp(deviceId)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val stopIntent = Intent(this, ForegroundLocationService::class.java).setAction(
+                ForegroundLocationService.ACTION_STOP_UPDATES
+            )
+
+            this.stopService(stopIntent)
+            //TODO update view
+
+        }
+        finish()
+    }
+
+    private fun registerBroadcastReceiver() {
+        var br = LocationProviderChangedReceiver()
+        br!!.init(
+            object : LocationProviderChangedReceiver.LocationListener {
+                override fun onEnabled() {
+                    locationViewModel.isLocationEnabled.value = true//Update our VM
+                }
+
+                override fun onDisabled() {
+                    locationViewModel.isLocationEnabled.value = false//Update our VM
+                }
+            }
+        )
+        val filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+        registerReceiver(br, filter)
+    }
 }

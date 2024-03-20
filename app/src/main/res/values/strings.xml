@@ -18,6 +18,8 @@
     <string name="location">Location</string>
     <string name="location_list">Location List</string>
     <string name="map_list">Map</string>
+    <string name="splash">Splash</string>
+    <string name="main">Main</string>
 
     <!-- Date Format -->
     <string name="date_time_format">yyyy.MM.dd HH:mm:ss</string>

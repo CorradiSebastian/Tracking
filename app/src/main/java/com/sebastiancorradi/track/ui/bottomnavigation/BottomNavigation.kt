@@ -20,17 +20,18 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sebastiancorradi.track.R
 import com.sebastiancorradi.track.navigation.AppScreens
+import com.sebastiancorradi.track.navigation.items
 
-sealed class Screen(val route: String, @StringRes val resourceId: Int) {
+/*sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object Location : Screen(AppScreens.LocationScreen.route, R.string.location)
     object LocationList : Screen(AppScreens.LocationListScreen.route, R.string.location_list)
     object MapScreen : Screen(AppScreens.MapScreen.route, R.string.map_list)
-}
-val items = listOf(
+}*/
+/*val items = listOf(
     Screen.Location,
     Screen.LocationList,
     Screen.MapScreen
-)
+)*/
 @Composable
 fun createBottomNavigation(navController: NavController,) {
     ConstraintLayout(

@@ -19,6 +19,8 @@
     <string name="location">Ubicacion</string>
     <string name="location_list">Lista de Ubicaciones</string>
     <string name="map_list">Map</string>
+    <string name="splash">Splash</string>
+    <string name="main">Main</string>
     <!-- Date Format -->
     <string name="date_time_format">dd/MM/yyyy HH:mm:ss</string>
 

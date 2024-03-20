@@ -12,8 +12,10 @@ import com.sebastiancorradi.track.domain.service.StopTrackingUseCase
 import com.sebastiancorradi.track.domain.UpdateFrequencyUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.store.UserStore
+import com.sebastiancorradi.track.ui.components.LocationHelper
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,10 +23,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class Sport { HIKE, RUN, TOURING_BICYCLE, E_TOURING_BICYCLE }
 @HiltViewModel
 class LocationViewModel @Inject constructor(
-    private val serviceConnection: ForegroundLocationServiceConnection
+    private val locationHelper: LocationHelper
 ): ViewModel() {
     val TAG = "LocationViewModel"
     @Inject
@@ -54,6 +55,9 @@ class LocationViewModel @Inject constructor(
 
     private lateinit var _dbLocationsFlow: Flow<List<LocationData>>
     //val dbLocationsFlow: StateFlow<MainScreenUIState> = _dbLocationsFlow.asStateFlow()
+
+    val isLocationEnabled = MutableStateFlow(false)
+
     fun permissionDenied(){
         //TODO update state with the error and act in consequence
     }
@@ -70,42 +74,14 @@ class LocationViewModel @Inject constructor(
     fun locationsFlowRequested(deviceId:String){
         getDBLocationsFlow(deviceId)
 
-
-        data class Summary(val sport: Sport, val distance: Int)
-        val sportStats = listOf(Summary(Sport.HIKE, 92),
-            Summary(Sport.RUN, 77),
-            Summary(Sport.TOURING_BICYCLE, 322),
-            Summary(Sport.E_TOURING_BICYCLE, 656))
-
-        val top = sportStats.sortedBy { it.distance }.last()
-
     }
     fun getDBLocationsFlow(deviceId: String){
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _dbLocationsFlow.collect { locations ->
                 // Update DB, add latest location
             }
         }
-    }
-    fun startLocationUpdates() {
-        //serviceConnection.service?.startLocationUpdates()
-        // Store that the user turned on location updates.
-        // It's possible that the service was not connected for the above call. In that case, when
-        // the service eventually starts, it will check the persisted value and react appropriately.
-        /*viewModelScope.launch {
-            locationPreferences.setLocationTurnedOn(true)
-        }*/
-    }
-
-    private fun stopLocationUpdates() {
-       //serviceConnection.service?.stopLocationUpdates()
-        // Store that the user turned off location updates.
-        // It's possible that the service was not connected for the above call. In that case, when
-        // the service eventually starts, it will check the persisted value and react appropriately.
-        /*viewModelScope.launch {
-            locationPreferences.setLocationTurnedOn(false)
-        }*/
     }
 
     fun permissionsGranted(permissions: Map<String, Boolean>) {
@@ -130,4 +106,20 @@ class LocationViewModel @Inject constructor(
         deleteLocationsUseCase(deviceId)
     }
 
+    init {
+        updateLocationServiceStatus()
+    }
+
+    private fun updateLocationServiceStatus() {
+        isLocationEnabled.value = locationHelper.isConnected()
+    }
+
+    //fun updateCurrentLocationData(mainActivity: MainActivity) {
+    fun updateCurrentLocationData() {
+
+    }
+
+    fun closeApp(deviceId: String){
+        stopTrackingUseCase.invoke(deviceId)
+    }
 }

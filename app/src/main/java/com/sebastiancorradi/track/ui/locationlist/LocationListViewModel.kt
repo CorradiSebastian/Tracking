@@ -8,6 +8,7 @@ import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
 import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,7 @@ class LocationListViewModel @Inject constructor(
 
     fun getDBLocationsFlow(deviceId: String): Flow<List<LocationData>> {
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _dbLocationsFlow.collect { locations ->
                 _locationListUIState.value = locationListUIState.value.copy(locations = locations)// Update DB, add latest location
             }

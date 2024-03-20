@@ -8,6 +8,7 @@ import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
 import com.sebastiancorradi.track.domain.map.UpdateFocusOnLastPositionUseCase
 import com.sebastiancorradi.track.domain.map.ZoomEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,7 @@ class MapViewModel @Inject constructor(): ViewModel() {
 
     fun getDBLocationsFlow(deviceId: String): Flow<List<LocationData>> {
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _dbLocationsFlow.collect { locations ->
                 _mapUIState.value = mapUIState.value.copy(locations = locations)// Update DB, add latest location
             }
