@@ -106,19 +106,7 @@ fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewMod
                 verticalArrangement = Arrangement.Bottom
             ){
                 ElevatedButton(
-                    modifier = Modifier.background(colorResource(R.color.buttonEnabled)),
-                    //onClick = { Log.e(TAG, "clicked") },
-                    onClick = { mainViewModel.resumeClicked()},
-                    //onClick = { _navController!!.navigate(AppScreens.LocationScreen.route) },
-                    //colors = ButtonColors(containerColor = colorResource(R.color.buttonEnabled)),
-                ) {
-                    Text("Resume")
-                }
-                ElevatedButton(
-                    modifier = Modifier.background(colorResource(R.color.buttonEnabled)),
-                    //onClick = { mainViewModel.startTrackingClicked() },
                     onClick = { signIn(context) },
-                    //colors = ButtonColors(containerColor = colorResource(R.color.buttonEnabled)),
                 ) {
                     Text("Login")
                 }
@@ -154,7 +142,5 @@ fun signIn(context: Context) {// Create and launch sign-in intent
 @Composable
 fun MainScreenPreview() {
     MainScreen( {})
-    /*TrackTheme {
-        MainContent(MainScreenUIState())
-    }*/
+
 }

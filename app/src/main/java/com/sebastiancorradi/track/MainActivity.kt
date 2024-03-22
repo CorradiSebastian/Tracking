@@ -62,13 +62,8 @@ class MainActivity: ComponentActivity() {
             //LAUNCH THE LOGIN SCREEN
             setContent {
                 val navController = rememberNavController()
-                //_navController!!.navigate(AppScreens.LocationScreen.route)
                 MainScreen({navController.navigate(AppScreens.LocationScreen.route)})
-                //AppNavigation()
             }
-            // Not signed in, launch the Sign In activity
-            //startActivity(Intent(this, SignInActivity::class.java))
-            //finish()
             return
         } else {
             setContent {
@@ -98,8 +93,6 @@ class MainActivity: ComponentActivity() {
         AuthUI.IdpConfig.EmailBuilder().build(),
         AuthUI.IdpConfig.PhoneBuilder().build(),
         AuthUI.IdpConfig.GoogleBuilder().build(),
-        //AuthUI.IdpConfig.FacebookBuilder().build(),
-        //AuthUI.IdpConfig.TwitterBuilder().build(),
     )
 
     fun signIn() {// Create and launch sign-in intent
@@ -111,21 +104,17 @@ class MainActivity: ComponentActivity() {
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult?) {
+        //Auth will be checked in OnResume method
         Log.e(TAG, "onSigninResult: $result")
         val response = result?.idpResponse
         if (result?.resultCode == RESULT_OK) {
             // Successfully signed in
-            val user = FirebaseAuth.getInstance().currentUser
+            //val user = FirebaseAuth.getInstance().currentUser
 
-            auth.currentUser
-            // ...
         } else {
             Log.e(TAG, "onSigninResult FAILED: $result")
             Log.e(TAG, "onSigninResult FAILED: ${response?.getError()?.getErrorCode()}")
-            // Sign in failed. If response is null the user canceled the
-            // sign-in flow using the back button. Otherwise check
-            // response.getError().getErrorCode() and handle the error.
-            // ...
+
         }
     }
 
@@ -200,8 +189,8 @@ class MainActivity: ComponentActivity() {
     }
 
     private fun registerBroadcastReceiver() {
-        var br = LocationProviderChangedReceiver()
-        br!!.init(
+        val br = LocationProviderChangedReceiver()
+        br.init(
             object : LocationProviderChangedReceiver.LocationListener {
                 override fun onEnabled() {
                     locationViewModel.isLocationEnabled.value = true//Update our VM

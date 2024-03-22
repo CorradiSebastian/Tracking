@@ -3,11 +3,10 @@ package com.sebastiancorradi.track.ui.location
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,17 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.app.ActivityCompat
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.location.LocationServices
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
@@ -50,8 +43,6 @@ import com.sebastiancorradi.track.store.UserStore
 
 private lateinit var viewModel: LocationViewModel
 val TAG = "LocationScreen"
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settingPrefs")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,8 +76,6 @@ fun LocationScreen(
         state.value.requestLocationPermission, state.value.requestNotificationPermission
     )
 
-    setLifeCycleObserver()
-
     if (state.value.startForeground) {
         startForegroundLocationService(context, state.value.trackFrequencySecs)
     }
@@ -95,7 +84,7 @@ fun LocationScreen(
             .fillMaxSize()
             .padding(12.dp),
     ) {
-        val (row1, button, sp1, button2, sp2, text, sp3, outLText, sp4, button3, sp5, bottomBar) = createRefs()
+        val (row1, trackingRow, text, outLText, button3,) = createRefs()
 
         Row(modifier = Modifier.constrainAs(row1) {
             top.linkTo(parent.top, margin = 5.dp)
@@ -122,40 +111,37 @@ fun LocationScreen(
                     .fillMaxWidth(),
             )
         }
-        Button(modifier = Modifier.constrainAs(button) {
-            top.linkTo(row1.bottom, margin = 5.dp)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-        }, onClick = {
-            stopForegroundLocationService(context)/*if (hasLocationAndPostPermissions(context)) {
-                subscribeToLocationUpdates(context, ::locationUpdate)
-            } else {
-                // Request location permission
-                viewModel.allowStandardClicked()
+        Row(
+            modifier = Modifier
+                .constrainAs(trackingRow) {
+                    top.linkTo(row1.bottom, margin = 5.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+                .fillMaxWidth()
+                .padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(onClick = {
+                stopForegroundLocationService(context)
+            }) {
+                Text(text = "Stop Foreground tracking")
+            }
 
-            }*/
-        }) {
-            Text(text = "Stop Foreground tracking")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(modifier = Modifier.constrainAs(button2) {
-            top.linkTo(button.bottom, margin = 5.dp)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-        }, onClick = {
-            Log.e(TAG, "button for start foreground location, statevale: ${state}")
-            _viewModel.allowForegroundClicked()
-        }) {
-            Text(text = "Start Foreground Tracking")
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                Log.e(TAG, "button for start foreground location, statevale: ${state}")
+                _viewModel.allowForegroundClicked()
+            }) {
+                Text(text = "Start Foreground Tracking")
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(modifier = Modifier.constrainAs(text) {
-            top.linkTo(button2.bottom, margin = 5.dp)
+            top.linkTo(trackingRow.bottom, margin = 5.dp)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
-        }, text = "Frequency", color = Color.Blue, fontWeight = FontWeight.Bold)
+        }, text = "Frequency (secs)", color = Color.Blue, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             modifier = Modifier.constrainAs(outLText) {
@@ -163,7 +149,7 @@ fun LocationScreen(
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             },
-            value = state.value.trackFrequencySecs.toString(),
+            value = state.value.trackFrequencySecs,
             maxLines = 2,
             //enabled = !tracking.value,
             textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
@@ -177,7 +163,6 @@ fun LocationScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        //TODO check if this is ok
         Button(modifier = Modifier.constrainAs(button3) {
             top.linkTo(outLText.bottom, margin = 5.dp)
             start.linkTo(parent.start)
@@ -204,7 +189,7 @@ private fun startForegroundLocationService(context: Context, frequency: String) 
         val intent = Intent(context.applicationContext, ForegroundLocationService::class.java)
         try {
             intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, frequency.toLong())
-        } catch (e: Exception){
+        } catch (e: Exception) {
             intent.putExtra(ForegroundLocationService.FREQUENCY_SECS, 10L)
         }
         context.startForegroundService(intent)
@@ -221,102 +206,6 @@ private fun stopForegroundLocationService(context: Context) {
         //TODO update view
         val deviceId = (context.applicationContext as TrackApp).getDeviceID()
         viewModel.stopForeground(deviceId)
-    }
-}
-
-@Composable
-fun setLifeCycleObserver() {
-    //val context = LocalContext.current
-
-    //Log.d(TAG, "onCreate, startForeground vale: $startForeground")
-    /*val startForeground = viewModel.mainScreenUIState.collectAsState().value.startForeground
-    ComposableLifecycle { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_CREATE -> {
-                Log.e(TAG, "onCreate, startForeground vale: $startForeground")
-            }
-
-            Lifecycle.Event.ON_START -> {
-                Log.e(TAG, "On Start")
-            }
-
-            Lifecycle.Event.ON_RESUME -> {
-                Log.e(TAG, "On Resume, startForeground vale: $startForeground")
-            }
-
-            Lifecycle.Event.ON_PAUSE -> {
-                Log.e(TAG, "On Pause, startForeground vale: $startForeground")
-            }
-
-            Lifecycle.Event.ON_STOP -> {
-              //  Log.d(TAG, "On Stop")
-                Log.e(TAG, "On STOP, startForeground vale: $startForeground")
-
-                //unSuscribeToLocationUpdates(context, ::locationUpdate)
-            }
-
-            Lifecycle.Event.ON_DESTROY -> {
-             //   Log.d(TAG, "On Destroy")
-            }
-
-            else -> {}
-        }
-    }*/
-}
-
-fun locationUpdate(location: Location) {
-    //TODO develop what to do on updates
-}
-
-private fun permissionDenied() {
-    viewModel.permissionDenied()
-}
-
-private fun getCurrentLocation(context: Context, callback: (Double, Double) -> Unit) {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    if (ActivityCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        //TODO esto es cuando no tiene los permisos
-        // TODO: Consider calling
-        //    ActivityCompat#requestPermissions
-        // here to request the missing permissions, and then overriding
-        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-        //                                          int[] grantResults)
-        // to handle the case where the user grants the permission. See the documentation
-        // for ActivityCompat#requestPermissions for more details.
-        return
-    }
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        if (location != null) {
-            val lat = location.latitude
-            val long = location.longitude
-            callback(lat, long)
-        }
-    }.addOnFailureListener { exception ->
-        // Handle location retrieval failure
-        exception.printStackTrace()
-    }
-}
-
-@Composable
-fun ComposableLifecycle(
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    onEvent: (LifecycleOwner, Lifecycle.Event) -> Unit
-) {
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { source, event ->
-            onEvent(source, event)
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
     }
 }
 
