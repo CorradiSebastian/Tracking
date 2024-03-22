@@ -39,6 +39,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.services.ForegroundLocationService
 import com.sebastiancorradi.track.store.UserStore
+import com.sebastiancorradi.track.ui.components.HyperlinkText
 
 
 private lateinit var viewModel: LocationViewModel
@@ -76,7 +77,7 @@ fun LocationScreen(
             .fillMaxSize()
             .padding(12.dp),
     ) {
-        val (row1, trackingRow, text, outLText, button3,) = createRefs()
+        val (row1, trackingRow, text, outLText, button3, link) = createRefs()
 
         Row(modifier = Modifier.constrainAs(row1) {
             top.linkTo(parent.top, margin = 5.dp)
@@ -165,7 +166,16 @@ fun LocationScreen(
             Text(text = "delete locations")
         }
         Spacer(modifier = Modifier.height(16.dp))
-
+        HyperlinkText(fullText = "You can find the privacy policy here ",
+            linkText = listOf("here"),
+            hyperlinks = listOf("https://raw.githubusercontent.com/CorradiSebastian/Tracking/main/privacyPolicy.txt"),
+            modifier = Modifier.constrainAs(link) {
+                top.linkTo(button3.bottom, margin = 15.dp)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            },
+            color = Color.Gray
+        )
 
         //   }
         //------------------------------------------------
