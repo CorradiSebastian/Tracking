@@ -10,11 +10,18 @@ class TrackApp: Application() {
     override fun onCreate() {
         super.onCreate()
         // Required initialization logic here!
+        DEVICE_ID = getDeviceID()
     }
 
     fun getDeviceID():String{
         val deviceId: String = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         return deviceId
+    }
+    companion object {
+        var DEVICE_ID = ""
+        fun getDeviceID():String {
+            return DEVICE_ID
+        }
     }
 
 }

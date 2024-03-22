@@ -1,7 +1,6 @@
 package com.sebastiancorradi.track.services
 
 
-
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
@@ -9,16 +8,19 @@ import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
-import android.util.Log
+import android.os.Looper
+import android.widget.Toast
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sebastiancorradi.track.TrackApp
 import com.sebastiancorradi.track.data.EventType
+import com.sebastiancorradi.track.domain.db.ErrorMessage
+import com.sebastiancorradi.track.domain.db.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.service.CreateNotificationChannelUseCase
 import com.sebastiancorradi.track.domain.service.CreateNotificationUseCase
-import com.sebastiancorradi.track.domain.db.SaveLocationUseCase
 import com.sebastiancorradi.track.domain.service.StartTrackingUseCase
 import com.sebastiancorradi.track.domain.service.StopTrackingUseCase
 import com.sebastiancorradi.track.store.UserStore
@@ -48,19 +50,23 @@ class ForegroundLocationService : LifecycleService() {
 
     @Inject
     lateinit var startTrackingUseCase: StartTrackingUseCase
+
     @Inject
     lateinit var stopTrackingUseCase: StopTrackingUseCase
+
     @Inject
     lateinit var saveLocationUseCase: SaveLocationUseCase
+
     @Inject
     lateinit var createNotificationUseCase: CreateNotificationUseCase
+
     @Inject
     lateinit var createNotificationChannelUseCase: CreateNotificationChannelUseCase
 
     val TAG = "ForegroundLocationService"
     private var _lastLocationFlow: MutableStateFlow<Location?>? = null
 
-    private val deviceId by lazy{ (applicationContext as TrackApp).getDeviceID()}
+    private val deviceId by lazy { (applicationContext as TrackApp).getDeviceID() }
 
     private val localBinder = LocalBinder()
     private var bindCount = 0
@@ -68,7 +74,7 @@ class ForegroundLocationService : LifecycleService() {
     private var started = false
 
     @Inject
-    lateinit var store : UserStore
+    lateinit var store: UserStore
 
     private fun isBound() = bindCount > 0
 
@@ -91,17 +97,13 @@ class ForegroundLocationService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val frequencySecs = intent?.getLongExtra(FREQUENCY_SECS, 10L)?:10L
+        val frequencySecs = intent?.getLongExtra(FREQUENCY_SECS, 10L) ?: 10L
         if (ACTION_STOP_UPDATES.equals(intent?.getAction())) {
             stopSelf()
-            //locationRepository.stopLocationUpdates()
-
-            //saveLocationUseCase.invoke(null, deviceId, EventType.STOP)
 
             started = false
             return START_NOT_STICKY
         }
-        //val notification = buildNotification(null)
 
         val notification = createNotificationUseCase(this)
         ServiceCompat.startForeground(
@@ -111,8 +113,7 @@ class ForegroundLocationService : LifecycleService() {
             /* foregroundServiceType = */
             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
 
-        )
-
+            )
 
         // Startup tasks only happen once.
         if (!started) {
@@ -122,7 +123,6 @@ class ForegroundLocationService : LifecycleService() {
             lifecycleScope.launch(Dispatchers.IO) {
                 store.saveTrackingStatus(true)
                 val flow = startTrackingUseCase(deviceId, frequencySecs * 1000)
-                Log.e(TAG, "tracking status ipdated, flow updated, start trackingUseCase called")
                 updateLastLocationFlow(flow)
                 saveLocationUseCase.invoke(Location(null), deviceId, EventType.START)
             }
@@ -133,18 +133,23 @@ class ForegroundLocationService : LifecycleService() {
     }
 
     @SuppressLint("NewApi")
-    private fun updateLastLocationFlow(flow: MutableStateFlow<Location?>?){
-        //TODO ver qu eno se sobreescriba ni quede algun flow colgando en el eter cosmico
+    private fun updateLastLocationFlow(flow: MutableStateFlow<Location?>?) {
         _lastLocationFlow = flow
-        Log.e("Sebas", "inicializando flow")
         lifecycleScope.launch(Dispatchers.IO) {
-        //viewModelScope.launch {
             // Trigger the flow and consume its elements using collect
             _lastLocationFlow?.collect { location ->
                 // Update DB, add latest location
-                Log.e("Sebas", "colectando location: $location")
                 location?.let {
-                    saveLocationUseCase.invoke(it, deviceId, EventType.TRACK)
+                    val result = saveLocationUseCase.invoke(it, deviceId, EventType.TRACK)
+                    if (result.message.equals(ErrorMessage.MaxLocationsReached.message)) {
+                        Handler(Looper.getMainLooper()).post(Runnable {
+                            Toast.makeText(
+                                applicationContext,
+                                ErrorMessage.MaxLocationsReached.resourceId,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        })
+                    }
                 }
             }
         }
@@ -180,15 +185,13 @@ class ForegroundLocationService : LifecycleService() {
     }
 
 
-
-
     /** Binder which provides clients access to the service. */
     internal inner class LocalBinder : Binder() {
         fun getService(): ForegroundLocationService = this@ForegroundLocationService
     }
 
     companion object {
-        const val FREQUENCY_SECS =  "Frequency_millis"
+        const val FREQUENCY_SECS = "Frequency_millis"
         const val UNBIND_DELAY_MILLIS = 2000.toLong() // 2 seconds
         const val NOTIFICATION_CHANNEL_ID = "LocationUpdates"
         const val ACTION_STOP_UPDATES = ".ACTION_STOP_UPDATES"

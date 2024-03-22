@@ -118,7 +118,6 @@ fun requestPermissions(context: Context, requestPermissionLauncher: ManagedActiv
         ) != PackageManager.PERMISSION_GRANTED
     ) {
         //TODO esto es cuando no tiene los permisos
-        // TODO: Consider calling
         //    ActivityCompat#requestPermissions
         // here to request the missing permissions, and then overriding
         //   public void onRequestPermissionsResult(int requestCode, String[] permissions,

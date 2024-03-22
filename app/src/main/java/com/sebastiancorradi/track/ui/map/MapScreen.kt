@@ -1,6 +1,5 @@
 package com.sebastiancorradi.track.ui.map
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +48,7 @@ import com.sebastiancorradi.track.data.MapUIState
 
 val TAG = "MapScreen"
 private lateinit var viewModel: MapViewModel
-private lateinit var state:MapUIState
+private lateinit var state: MapUIState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,8 +65,7 @@ fun MapScreen(_viewModel: MapViewModel = hiltViewModel()) {
     }
 
     ConstraintLayout(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         val (row1, text) = createRefs()
 
@@ -85,91 +83,86 @@ fun MapScreen(_viewModel: MapViewModel = hiltViewModel()) {
 
 
 @Composable
-fun ShowMap(locations: List<LocationData>){
+fun ShowMap(locations: List<LocationData>) {
     var centerOnLastPosition = state.focusOnLastPosition
-    Log.e(TAG, "showMap")
     var uiSettings by remember { mutableStateOf(MapUiSettings()) }
     var properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.SATELLITE))
     }
 
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            properties = properties,
-            uiSettings = uiSettings,
-            //cameraPositionState =  cameraPositionState,
-        ){
-            for (location in locations) {
-                location.ubicacion?.let {
-                    Marker(
-                        state = MarkerState(
-                            position = LatLng(
-                                it.lat?:0.0,
-                                it.long?:0.0
-                            )
-                        ), title = it.eventType.toString(), snippet = "Marker"
-                    )
-                }
-            }
-            if (centerOnLastPosition) {
-                var lastCameraPosition = if (locations.lastIndex >= 0) {
-                    var lastLocation: LocationData? = locations.get(locations.lastIndex)
-                    val lastPos = LatLng(
-                        lastLocation?.ubicacion?.lat ?: 0.0, lastLocation?.ubicacion?.long ?: 0.0
-                    )
-                    var cameraPosition = CameraPosition.fromLatLngZoom(lastPos, 10f)
-                    CameraPositionState(cameraPosition)
-                } else {
-                    var cameraPosition = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 10f)
-                    CameraPositionState(cameraPosition)
-                }
-                currentCameraPositionState.move(
-                    CameraUpdateFactory.newCameraPosition(
-                        lastCameraPosition.position
-                    )
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        properties = properties,
+        uiSettings = uiSettings,
+        //cameraPositionState =  cameraPositionState,
+    ) {
+        for (location in locations) {
+            location.ubicacion?.let {
+                Marker(
+                    state = MarkerState(
+                        position = LatLng(
+                            it.lat ?: 0.0, it.long ?: 0.0
+                        )
+                    ), title = it.eventType.toString(), snippet = "Marker"
                 )
-                currentCameraPositionState.move(CameraUpdateFactory.zoomTo(19F))
             }
         }
-        Log.e(TAG, "focus value: ${state.focusOnLastPosition}")
-        Column {
-            SwitchWithText(label = "Zoom enabled", callback = { checked ->
-                uiSettings = uiSettings.copy(zoomControlsEnabled = checked,
-                                                scrollGesturesEnabled = checked,
-                                                zoomGesturesEnabled = checked,
-                                                rotationGesturesEnabled = checked,)
-                viewModel.zoomEnabled(checked, )
-            }, viewModel.mapUIState.collectAsState().value.zoomEnabled)
-            Spacer(modifier = Modifier.height(5.dp))
-            SwitchWithText(label = "Center on last position", callback = { checked ->
-                //centerOnLastPosition = checked
-                viewModel.focusOnLastPositionUpdated(checked)
-            }, viewModel.mapUIState.collectAsState().value.focusOnLastPosition)
+        if (centerOnLastPosition) {
+            var lastCameraPosition = if (locations.lastIndex >= 0) {
+                var lastLocation: LocationData? = locations.get(locations.lastIndex)
+                val lastPos = LatLng(
+                    lastLocation?.ubicacion?.lat ?: 0.0, lastLocation?.ubicacion?.long ?: 0.0
+                )
+                var cameraPosition = CameraPosition.fromLatLngZoom(lastPos, 10f)
+                CameraPositionState(cameraPosition)
+            } else {
+                var cameraPosition = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 10f)
+                CameraPositionState(cameraPosition)
+            }
+            currentCameraPositionState.move(
+                CameraUpdateFactory.newCameraPosition(
+                    lastCameraPosition.position
+                )
+            )
+            currentCameraPositionState.move(CameraUpdateFactory.zoomTo(19F))
         }
-   // }
+    }
+    Column {
+        SwitchWithText(label = "Zoom enabled", callback = { checked ->
+            uiSettings = uiSettings.copy(
+                zoomControlsEnabled = checked,
+                scrollGesturesEnabled = checked,
+                zoomGesturesEnabled = checked,
+                rotationGesturesEnabled = checked,
+            )
+            viewModel.zoomEnabled(checked)
+        }, viewModel.mapUIState.collectAsState().value.zoomEnabled)
+        Spacer(modifier = Modifier.height(5.dp))
+        SwitchWithText(label = "Center on last position", callback = { checked ->
+            //centerOnLastPosition = checked
+            viewModel.focusOnLastPositionUpdated(checked)
+        }, viewModel.mapUIState.collectAsState().value.focusOnLastPosition)
+    }
+    // }
 }
 
 @Composable
 fun BasicSwitch(callback: (checked: Boolean) -> Unit, checked: Boolean) {
     //var checked by remember { mutableStateOf(true) }
     //var checked = viewModel.mapUIState.collectAsState().value.focusOnLastPosition
-    Switch(
-        checked = checked,
-        onCheckedChange = {
-            callback(it)
-        },
-        thumbContent = if (checked) {
-            {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                )
-            }
-        } else {
-            null
+    Switch(checked = checked, onCheckedChange = {
+        callback(it)
+    }, thumbContent = if (checked) {
+        {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+            )
         }
-    )
+    } else {
+        null
+    })
 }
 
 @Composable
@@ -182,7 +175,7 @@ fun SwitchWithText(label: String, callback: (checked: Boolean) -> Unit, checked:
                 .background(Color(0x80000000))
                 .padding(horizontal = 5.dp),
         ) {
-            Text(text =  label, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(text = label, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(5.dp))
             BasicSwitch(callback, checked)
         }

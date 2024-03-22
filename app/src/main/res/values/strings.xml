@@ -30,8 +30,11 @@
     <string name="welcome_text_2">EL codigo esta publicado en Github y la aplicacion disponible en el playstore</string>
     <string name="welcome_text_3">Se ofrece libremente sin ningun tipo de garantia.</string>
 
-    <string-array
-        name="concepts">
+    <!-- Errors -->
+    <string name="ok_message">ok.</string>
+    <string name="max_locations_reached">Max locations reached.</string>
+
+    <string-array name="concepts">
         <item>CLEAN arch.</item>
         <item>MVVM.</item>
         <item>Firebase RTDM.</item>

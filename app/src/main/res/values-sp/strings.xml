@@ -29,4 +29,8 @@
     <string name="welcome_text_1">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
     <string name="welcome_text_2">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
     <string name="welcome_text_3">Esta aplicacion fue hecha para mostrar implementacoines basicas de varios conceptos y librerias.</string>
+
+    <!-- Errors -->
+    <string name="ok_message">ok.</string>
+    <string name="max_locations_reached">Maximode ubicaciones alcanzado.</string>
 </resources>

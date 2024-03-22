@@ -37,7 +37,6 @@ fun LocationListScreen(
     val tracking = trackingFlow.collectAsState(initial = false).value
 
     val locats = state.value.locations
-    Log.e(TAG, "locats value: $locats")
     val deviceId = (context.applicationContext as TrackApp).getDeviceID()
     remember {
         viewModel.locationsFlowRequested(deviceId)

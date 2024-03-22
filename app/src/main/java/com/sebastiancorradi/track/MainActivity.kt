@@ -99,22 +99,18 @@ class MainActivity: ComponentActivity() {
         val signInIntent =
             AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
                 .build()
-        Log.e(TAG, "before signInLauncher.launch")
         signInLauncher.launch(signInIntent)
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult?) {
         //Auth will be checked in OnResume method
-        Log.e(TAG, "onSigninResult: $result")
         val response = result?.idpResponse
         if (result?.resultCode == RESULT_OK) {
             // Successfully signed in
             //val user = FirebaseAuth.getInstance().currentUser
 
         } else {
-            Log.e(TAG, "onSigninResult FAILED: $result")
-            Log.e(TAG, "onSigninResult FAILED: ${response?.getError()?.getErrorCode()}")
-
+            //TODO
         }
     }
 
@@ -182,8 +178,6 @@ class MainActivity: ComponentActivity() {
             )
 
             this.stopService(stopIntent)
-            //TODO update view
-
         }
         finish()
     }

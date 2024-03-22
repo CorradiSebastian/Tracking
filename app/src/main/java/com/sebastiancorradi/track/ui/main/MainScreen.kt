@@ -60,7 +60,6 @@ fun MainScreen(onResumeClicked: () -> Unit,
 @Composable
 fun MainContent(mainScreenUIState: MainScreenUIState, mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    Log.e(TAG, "main screen maincontent")
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {

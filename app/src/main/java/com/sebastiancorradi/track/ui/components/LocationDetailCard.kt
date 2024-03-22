@@ -109,7 +109,6 @@ fun LocationDetailCard(location: LocationData) {
 }
 
 fun getEventType(context: Context, location: LocationData): String{
-    Log.e(TAG, "locaitonData: $location")
     when(location.ubicacion?.eventType){
         EventType.START -> {
             return context.getString(R.string.event_type_start)

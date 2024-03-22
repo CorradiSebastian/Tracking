@@ -58,14 +58,6 @@ class LocationViewModel @Inject constructor(
 
     val isLocationEnabled = MutableStateFlow(false)
 
-    fun permissionDenied(){
-        //TODO update state with the error and act in consequence
-    }
-
-    fun allowStandardClicked(){
-        _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = false)
-    }
-
     fun allowForegroundClicked(){
         _mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = true)
         //_mainScreenUIState.value = allowTrackingUseCase(mainScreenUIState.value, startForeground = false)

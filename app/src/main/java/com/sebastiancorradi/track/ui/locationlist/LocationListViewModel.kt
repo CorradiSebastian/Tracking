@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.sebastiancorradi.track.data.LocationData
 import com.sebastiancorradi.track.data.LocationListUIState
 import com.sebastiancorradi.track.domain.db.GetDBLocationsUseCase
-import com.sebastiancorradi.track.services.ForegroundLocationServiceConnection
 import com.sebastiancorradi.track.ui.main.MainScreenUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -17,10 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LocationListViewModel @Inject constructor(
-    //TODO este parametro no se esta usando
-    private val serviceConnection: ForegroundLocationServiceConnection
-): ViewModel() {
+class LocationListViewModel @Inject constructor() : ViewModel() {
 
     @Inject
     lateinit var getDBLocationsUseCase: GetDBLocationsUseCase
@@ -37,13 +33,14 @@ class LocationListViewModel @Inject constructor(
         _dbLocationsFlow = getDBLocationsUseCase(deviceId)
         viewModelScope.launch(Dispatchers.IO) {
             _dbLocationsFlow.collect { locations ->
-                _locationListUIState.value = locationListUIState.value.copy(locations = locations)// Update DB, add latest location
+                _locationListUIState.value =
+                    locationListUIState.value.copy(locations = locations)// Update DB, add latest location
             }
         }
         return _dbLocationsFlow
     }
 
-    fun locationsFlowRequested(deviceId:String): Flow<List<LocationData>> {
+    fun locationsFlowRequested(deviceId: String): Flow<List<LocationData>> {
         return getDBLocationsFlow(deviceId)
     }
 

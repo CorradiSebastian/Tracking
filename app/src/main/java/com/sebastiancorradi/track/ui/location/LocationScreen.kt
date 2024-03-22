@@ -63,15 +63,7 @@ fun LocationScreen(
     }
 
     val tracking = trackingFlow.collectAsState(initial = false).value
-    // Create a permission launcher
-    //TODO ver si hace falta algo visual que se hidrate desde el estado, para que lo dibuje de nuevo
-    /*
-    if (hasLocationAndPostPermissions(context)) {
-        //subscribeToLocationUpdates(context, ::locationUpdate)
-    } else {
-        permissionDenied()
-    }*/
-    //TODO cambiar la logica, tener un flag en el estado para saber si tengo que pedir el permiso
+
     RequestPermissions(
         state.value.requestLocationPermission, state.value.requestNotificationPermission
     )
@@ -129,7 +121,6 @@ fun LocationScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
-                Log.e(TAG, "button for start foreground location, statevale: ${state}")
                 _viewModel.allowForegroundClicked()
             }) {
                 Text(text = "Start Foreground Tracking")
@@ -182,7 +173,6 @@ fun LocationScreen(
 }
 
 private fun startForegroundLocationService(context: Context, frequency: String) {
-    Log.e(TAG, "start foreground location, statevale: ${viewModel.mainScreenUIState.value}")
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
         viewModel.foregroundStarted()
@@ -203,7 +193,7 @@ private fun stopForegroundLocationService(context: Context) {
         )
 
         context.stopService(stopIntent)
-        //TODO update view
+
         val deviceId = (context.applicationContext as TrackApp).getDeviceID()
         viewModel.stopForeground(deviceId)
     }
